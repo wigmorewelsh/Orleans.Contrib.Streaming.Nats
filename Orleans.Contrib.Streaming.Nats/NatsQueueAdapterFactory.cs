@@ -29,7 +29,7 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
         this.queueMapperOptions = queueMapperOptions;
         this.natsOptions = natsOptions;
         this.serialize = serialize;
-        _hashRingBasedStreamQueueMapper = new HashRingBasedStreamQueueMapper(this.queueMapperOptions, "test");
+        _hashRingBasedStreamQueueMapper = new HashRingBasedStreamQueueMapper(this.queueMapperOptions, name);
     }
 
     public string Name { get; set; }

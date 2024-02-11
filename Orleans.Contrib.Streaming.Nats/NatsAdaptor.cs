@@ -41,7 +41,7 @@ public class NatsAdaptor : IQueueAdapter
             };
             var @namespace = Encoding.UTF8.GetString(streamId.Namespace.Span); 
             var key = Encoding.UTF8.GetString(streamId.Key.Span);
-            await _context.PublishAsync($"somestream.{queueId}.{@namespace}.{key}", natsMessage,
+            await _context.PublishAsync($"{Name}.{queueId}.{@namespace}.{key}", natsMessage,
                 opts: natsJsPubOpts);
         }
     }
@@ -50,17 +50,17 @@ public class NatsAdaptor : IQueueAdapter
     {
         try
         {
-            var stream = await _context.GetStreamAsync("somestream");
+            var stream = await _context.GetStreamAsync(Name);
         }
         catch (Exception err)
         {
-            await _context.CreateStreamAsync(new StreamConfig("somestream", new[] { "somestream.>" }));
+            await _context.CreateStreamAsync(new StreamConfig(Name, new[] { $"{Name}.>" }));
         }
     }
 
     public IQueueAdapterReceiver CreateReceiver(QueueId queueId)
     {
-        var natsQueueAdapterReceiver = new NatsQueueAdapterReceiver(_context, queueId, _serializer);
+        var natsQueueAdapterReceiver = new NatsQueueAdapterReceiver(Name, _context, queueId, _serializer);
         return natsQueueAdapterReceiver;
     }
 

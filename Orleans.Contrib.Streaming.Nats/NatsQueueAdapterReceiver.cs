@@ -9,14 +9,16 @@ namespace Orleans.Contrib.Streaming.Nats;
 
 public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
 {
+    private readonly string _name;
     private readonly NatsJSContext _context;
     private readonly QueueId _queueId;
     private readonly NatsJSContext _natsJsContext;
     private INatsJSConsumer? _consumer;
     private Serializer _serializer;
 
-    public NatsQueueAdapterReceiver(NatsJSContext context, QueueId queueId, Serializer serializer)
+    public NatsQueueAdapterReceiver(string name, NatsJSContext context, QueueId queueId, Serializer serializer)
     {
+        _name = name;
         _context = context;
         _queueId = queueId;
         _serializer = serializer;
@@ -32,15 +34,15 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
     {
         try
         {
-            _consumer = await _context.GetConsumerAsync("somestream", _queueId.ToString());
+            _consumer = await _context.GetConsumerAsync(_name, _queueId.ToString());
         }
         catch (Exception err)
         {
-            _consumer = await _context.CreateOrUpdateConsumerAsync("somestream",
+            _consumer = await _context.CreateOrUpdateConsumerAsync(_name,
                 new ConsumerConfig(_queueId.ToString())
                 {
                     DurableName = _queueId.ToString(),
-                    FilterSubject = $"somestream.{_queueId}.>",
+                    FilterSubject = $"{_name}.{_queueId}.>",
                     DeliverPolicy = ConsumerConfigDeliverPolicy.New,
                     AckPolicy = ConsumerConfigAckPolicy.Explicit
                 }); 
@@ -51,11 +53,11 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
     {
         try
         {
-            var stream = await _context.GetStreamAsync("somestream");
+            var stream = await _context.GetStreamAsync(_name);
         }
         catch (Exception err)
         {
-            await _context.CreateStreamAsync(new StreamConfig("somestream", new[] { "somestream.>" }));
+            await _context.CreateStreamAsync(new StreamConfig(_name, new[] { $"{_name}.>" }));
         }
     }
 
