@@ -12,10 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     services:
       nats:
-        image: nats
-        ports:
-          - 4222:4222
-        options: --jetstream
+        image: nats:latest
+#        ports:
+#          - 4222:4222
+#        options: --jetstream
           
 
     steps:
