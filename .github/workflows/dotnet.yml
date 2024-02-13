@@ -7,9 +7,16 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
 
+  build:
     runs-on: ubuntu-latest
+    services:
+      nats:
+        image: nats
+        ports:
+          - 4222:4222
+        options: -js
+          
 
     steps:
       - uses: actions/checkout@v2
