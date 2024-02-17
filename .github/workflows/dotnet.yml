@@ -15,7 +15,7 @@ jobs:
         image: nats:latest
         ports:
           - 4222:4222
-        options: --name nats -- -js
+        options: --name nats
 
 
     steps:

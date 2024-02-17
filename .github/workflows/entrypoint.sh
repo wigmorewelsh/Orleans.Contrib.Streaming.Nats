@@ -1,3 +1,3 @@
 #!/bin/sh
 
-/usr/local/bin/nats-server --js
+nats-server --js
