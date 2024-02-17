@@ -37,7 +37,7 @@ jobs:
         uses: nats-io/jetstream-gh-action/create/stream@main
         with:
           config: .github/workflows/StreamProvider.json
-          server: nats
+          server: localhost:4222
       - name: GitTools Run
         id: gitversion
         uses: gittools/actions/gitversion/execute@v0.9.7
@@ -48,7 +48,7 @@ jobs:
       - name: Test
         run: dotnet test --no-build --verbosity normal --configuration Release
         env:
-          NATS_SERVER: nats
+          NATS_SERVER: localhost:4222
       - name: Pack
         run: dotnet pack --configuration Release
       - name: Create Release
