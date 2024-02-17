@@ -16,14 +16,19 @@ jobs:
         ports:
           - 4222:4222
         options: --name nats
-        volumes:
-          - ${{ github.workspace }}/.github/workflows/nats-server.conf:/nats-server.conf
 
 
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          
+      # add .github/workflows/nats-server.conf the nats docker container
+      - name: start jetstream
+        run: |
+          docker cp ${{ github.workspace }}/.github/workflows/nats-server.conf nats:/nats-server.conf
+          docker restart nats
+          
           
       - name: Setup .NET 6.0
         uses: actions/setup-dotnet@v1
