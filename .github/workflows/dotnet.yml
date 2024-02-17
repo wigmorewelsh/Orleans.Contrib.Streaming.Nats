@@ -16,7 +16,7 @@ jobs:
         ports:
           - 4222:4222
 #        options: --jetstream
-          
+
 
     steps:
       - uses: actions/checkout@v2
@@ -34,6 +34,12 @@ jobs:
         uses: gittools/actions/gitversion/setup@v0.9.7
         with:
           versionSpec: '5.x'
+      - name: orders_stream
+        uses: nats-io/jetstream-gh-action/create/stream@main
+        with:
+          config: StreamProvider.json
+          stream: StreamProvider
+          server: jetstream:4222
       - name: GitTools Run
         id: gitversion
         uses: gittools/actions/gitversion/execute@v0.9.7
@@ -43,6 +49,8 @@ jobs:
         run: dotnet build --no-restore --configuration Release
       - name: Test
         run: dotnet test --no-build --verbosity normal --configuration Release
+        env:
+          NATS_SERVER: jetstream:4222
       - name: Pack
         run: dotnet pack --configuration Release
       - name: Create Release

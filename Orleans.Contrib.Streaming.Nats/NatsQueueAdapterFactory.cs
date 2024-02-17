@@ -36,7 +36,8 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
 
     public async Task<IQueueAdapter> CreateAdapter()
     {
-        var natsOptions = new NatsOpts()
+        
+        var natsOptions = this.natsOptions with
         {
             SerializerRegistry = new NatsOrleansSerilizerRegistry(serialize)
         };
