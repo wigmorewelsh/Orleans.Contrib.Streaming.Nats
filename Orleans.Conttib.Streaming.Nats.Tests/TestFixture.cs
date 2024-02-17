@@ -1,63 +1,65 @@
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using NATS.Client.Core;
 using Orleans.Configuration;
 using Orleans.Contrib.Streaming.Nats;
 using Orleans.Runtime;
+using Orleans.TestingHost;
 
 namespace Orleans.Conttib.Streaming.Nats.Tests;
 
 public class TestFixture : IAsyncLifetime
 {
-    private IHost _host;
-    private Task _task;
+    private TestCluster _host;
+    private InProcessSiloHandle _silo;
 
-    public IServiceProvider Services => _host.Services;
+    public IServiceProvider Services => _silo.SiloHost.Services;
 
     public class StartupToken
     {
         public TaskCompletionSource TaskCompletionSource { get; } = new TaskCompletionSource();
     }
     
-    public class StartupTask : IStartupTask
+    internal class SiloConfig : ISiloConfigurator
     {
-        private readonly StartupToken _token;
-
-        public StartupTask(StartupToken token)
+        public void Configure(ISiloBuilder siloBuilder)
         {
-            _token = token;
-        }
-        
-        public Task Execute(CancellationToken cancellationToken)
-        {
-            _token.TaskCompletionSource.TrySetResult();
-            return Task.CompletedTask;
+            siloBuilder.ConfigureLogging(logging =>
+            {
+                logging.SetMinimumLevel(LogLevel.Information);
+                logging.AddConsole(cl => cl.LogToStandardErrorThreshold = LogLevel.Error);
+            });
+            siloBuilder.UseLocalhostClustering();
+            siloBuilder.AddNatsStreams("StreamProvider", c =>
+            {
+                if (Environment.GetEnvironmentVariable("NATS_SERVER") is { } natserver)
+                {
+                    c.Configure<NatsConfigator>(b => b.Configure(d => d.AddConfigurator(opt => opt with
+                    {
+                        Url = natserver
+                    })));
+                }
+            });
+            siloBuilder.AddMemoryGrainStorage("PubSubStore");
         }
     }
-    
+
     async Task IAsyncLifetime.InitializeAsync()
     {
-        HostApplicationBuilder builder = Host.CreateApplicationBuilder();
-        builder.Services.AddSingleton<StartupToken>();
-        builder.UseOrleans(o =>
-        {
-            o.AddStartupTask<StartupTask>();
-            o.UseLocalhostClustering();
-            o.AddNatsStreams("StreamProvider");
-            o.AddMemoryGrainStorage("PubSubStore");
-        });
+        var builder = new TestClusterBuilder();
+
+        builder.AddSiloBuilderConfigurator<SiloConfig>();
 
         _host = builder.Build();
-        _task = Task.Run(async () =>
-        {
-            await _host.RunAsync();
-        });
-        await Task.Yield();
-        var token = _host.Services.GetRequiredService<StartupToken>();
-        await token.TaskCompletionSource.Task;
+        _silo = (InProcessSiloHandle)await _host.StartSiloAsync(1, new TestClusterOptions() { });
     }
 
     async Task IAsyncLifetime.DisposeAsync()
     {
-        await _host.StopAsync();
+        await _host.DisposeAsync();
     }
 }
+

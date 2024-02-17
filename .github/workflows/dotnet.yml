@@ -7,14 +7,29 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
 
+  build:
     runs-on: ubuntu-latest
+    services:
+      nats:
+        image: nats:latest
+        ports:
+          - 4222:4222
+        options: --name nats
+
 
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          
+      # add .github/workflows/nats-server.conf the nats docker container
+      - name: start jetstream
+        run: |
+          docker cp ${{ github.workspace }}/.github/workflows/nats-server.conf nats:/nats-server.conf
+          docker restart nats
+          
+          
       - name: Setup .NET 6.0
         uses: actions/setup-dotnet@v1
         with:
@@ -27,6 +42,11 @@ jobs:
         uses: gittools/actions/gitversion/setup@v0.9.7
         with:
           versionSpec: '5.x'
+#      - name: orders_stream
+#        uses: nats-io/jetstream-gh-action/create/stream@main
+#        with:
+#          config: .github/workflows/StreamProvider.json
+#          server: localhost:4222
       - name: GitTools Run
         id: gitversion
         uses: gittools/actions/gitversion/execute@v0.9.7
@@ -36,6 +56,8 @@ jobs:
         run: dotnet build --no-restore --configuration Release
       - name: Test
         run: dotnet test --no-build --verbosity normal --configuration Release
+        env:
+          NATS_SERVER: 0.0.0.0:4222
       - name: Pack
         run: dotnet pack --configuration Release
       - name: Create Release

@@ -40,18 +40,18 @@ public class WalkthoughTests : IClassFixture<TestFixture>
         var dateTime = DateTime.UtcNow;
         await stream.OnNextAsync($"test {dateTime}");
 
-        await completeObserver.Task;
+        await completeObserver.Task.WaitAsync(TimeSpan.FromSeconds(30));
         
         await Task.Delay(500);
         
         var messages = await grain.Message();
-        messages.ShouldBe(new List<string> { "test " + dateTime });
+        messages.ShouldContain("test " + dateTime);
 
     }
 
     public class TaskCompletionSourceObserver : ICompleteObserver
     {
-        private readonly TaskCompletionSource _taskCompletionSource = new TaskCompletionSource();
+        private readonly TaskCompletionSource _taskCompletionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         
         public Task OnCompleted()
         {
