@@ -4,13 +4,12 @@ using Orleans.Providers;
 namespace Orleans.Contrib.Streaming.Nats;
 
 /// <summary>
-/// <see cref="ISiloBuilder"/> extension methods for configuring in-memory streams. 
+/// <see cref="ISiloBuilder"/> extension methods for configuring nats streams. 
 /// </summary>
 public static class SiloBuilderNatsStreamExtensions
 {
-
     /// <summary>
-    /// Configure silo to use memory streams, using the default message serializer
+    /// Configure silo to use nats streams, using the default message serializer
     /// (<see cref="DefaultMemoryMessageBodySerializer"/>).
     /// </summary>
     /// using the default built-in serializer
@@ -25,7 +24,7 @@ public static class SiloBuilderNatsStreamExtensions
     }
 
     /// <summary>
-    /// Configure silo to use memory streams.
+    /// Configure silo to use nats streams.
     /// </summary>
     /// <typeparam name="TSerializer">The message serializer type, which must implement <see cref="IMemoryMessageBodySerializer"/>.</typeparam>
     /// <param name="builder">The builder.</param>
@@ -37,10 +36,10 @@ public static class SiloBuilderNatsStreamExtensions
         where TSerializer : class, IMemoryMessageBodySerializer
     {
         //the constructor wire up DI with all default components of the streams , so need to be called regardless of configureStream null or not
-        var memoryStreamConfiguretor = new SiloNatsStreamConfigurator<TSerializer>(name,
+        var natsStreamConfigurator = new SiloNatsStreamConfigurator<TSerializer>(name,
             configureDelegate => builder.ConfigureServices(configureDelegate)
         );
-        configure?.Invoke(memoryStreamConfiguretor);
+        configure?.Invoke(natsStreamConfigurator);
         return builder;
     }
 }

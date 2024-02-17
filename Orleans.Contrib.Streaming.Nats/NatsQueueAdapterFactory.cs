@@ -14,7 +14,7 @@ namespace Orleans.Contrib.Streaming.Nats;
 
 public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
 {
-    private readonly NatsOpts natsOptions;
+    private readonly NatsConfigator _natsConfigator;
     private readonly HashRingStreamQueueMapperOptions queueMapperOptions;
     private readonly Serializer serialize;
     private HashRingBasedStreamQueueMapper _hashRingBasedStreamQueueMapper;
@@ -22,12 +22,12 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
     public NatsQueueAdapterFactory(
         string name,
         HashRingStreamQueueMapperOptions queueMapperOptions,
-        NatsOpts natsOptions,
+        NatsConfigator natsConfigator,
         Serializer serialize)
     {
         Name = name;
         this.queueMapperOptions = queueMapperOptions;
-        this.natsOptions = natsOptions;
+        this._natsConfigator = natsConfigator;
         this.serialize = serialize;
         _hashRingBasedStreamQueueMapper = new HashRingBasedStreamQueueMapper(this.queueMapperOptions, name);
     }
@@ -36,8 +36,9 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
 
     public async Task<IQueueAdapter> CreateAdapter()
     {
-        
-        var natsOptions = this.natsOptions with
+        var natsOptions = NatsOpts.Default;
+        natsOptions = _natsConfigator.Configure(natsOptions); 
+        natsOptions = natsOptions with
         {
             SerializerRegistry = new NatsOrleansSerilizerRegistry(serialize)
         };
@@ -70,7 +71,7 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
     public static NatsQueueAdapterFactory Create(IServiceProvider services, string name)
     {
         var queueMapperOptions = services.GetOptionsByName<HashRingStreamQueueMapperOptions>(name);
-        var natsOpts = services.GetOptionsByName<NatsOpts>(name);
+        var natsOpts = services.GetOptionsByName<NatsConfigator>(name);
         var factory = ActivatorUtilities.CreateInstance<NatsQueueAdapterFactory>(services, name, queueMapperOptions, natsOpts);
         return factory;
     }

@@ -1,5 +1,8 @@
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using NATS.Client.Core;
 using Orleans.Configuration;
 using Orleans.Contrib.Streaming.Nats;
 using Orleans.Runtime;
@@ -24,11 +27,20 @@ public class TestFixture : IAsyncLifetime
         public void Configure(ISiloBuilder siloBuilder)
         {
             siloBuilder.UseLocalhostClustering();
-            siloBuilder.AddNatsStreams("StreamProvider");
+            siloBuilder.AddNatsStreams("StreamProvider", c =>
+            {
+                if (Environment.GetEnvironmentVariable("NATS_SERVER") is { } natserver)
+                {
+                    c.Configure<NatsConfigator>(b => b.Configure(d => d.AddConfigurator(opt => opt with
+                    {
+                        Url = natserver
+                    })));
+                }
+            });
             siloBuilder.AddMemoryGrainStorage("PubSubStore");
         }
     }
-    
+
     async Task IAsyncLifetime.InitializeAsync()
     {
         var builder = new TestClusterBuilder();
