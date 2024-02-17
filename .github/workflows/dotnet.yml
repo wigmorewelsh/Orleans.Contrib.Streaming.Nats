@@ -37,7 +37,7 @@ jobs:
       - name: orders_stream
         uses: nats-io/jetstream-gh-action/create/stream@main
         with:
-          config: StreamProvider.json
+          config: .github/workflows/StreamProvider.json
           server: jetstream:4222
       - name: GitTools Run
         id: gitversion
