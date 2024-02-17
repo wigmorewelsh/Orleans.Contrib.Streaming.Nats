@@ -38,7 +38,6 @@ jobs:
         uses: nats-io/jetstream-gh-action/create/stream@main
         with:
           config: StreamProvider.json
-          stream: StreamProvider
           server: jetstream:4222
       - name: GitTools Run
         id: gitversion
