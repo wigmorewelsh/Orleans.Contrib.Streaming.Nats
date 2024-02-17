@@ -15,7 +15,6 @@ jobs:
         image: nats:latest
         ports:
           - 4222:4222
-#        options: --jetstream
 
 
     steps:
@@ -38,7 +37,7 @@ jobs:
         uses: nats-io/jetstream-gh-action/create/stream@main
         with:
           config: .github/workflows/StreamProvider.json
-          server: jetstream:4222
+          server: nats
       - name: GitTools Run
         id: gitversion
         uses: gittools/actions/gitversion/execute@v0.9.7
@@ -49,7 +48,7 @@ jobs:
       - name: Test
         run: dotnet test --no-build --verbosity normal --configuration Release
         env:
-          NATS_SERVER: jetstream:4222
+          NATS_SERVER: nats
       - name: Pack
         run: dotnet pack --configuration Release
       - name: Create Release
