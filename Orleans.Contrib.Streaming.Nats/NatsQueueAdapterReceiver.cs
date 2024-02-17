@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.Extensions.Logging;
 using NATS.Client.JetStream;
 using NATS.Client.JetStream.Models;
 using Orleans.Runtime;
@@ -15,13 +16,20 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
     private readonly NatsJSContext _natsJsContext;
     private INatsJSConsumer? _consumer;
     private Serializer _serializer;
+    private readonly ILogger _logger;
 
-    public NatsQueueAdapterReceiver(string name, NatsJSContext context, QueueId queueId, Serializer serializer)
+    public NatsQueueAdapterReceiver(
+        string name, 
+        NatsJSContext context, 
+        QueueId queueId, 
+        Serializer serializer,
+        ILogger logger)
     {
         _name = name;
         _context = context;
         _queueId = queueId;
         _serializer = serializer;
+        _logger = logger;
     }
 
     public async Task Initialize(TimeSpan timeout)
@@ -38,6 +46,7 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
         }
         catch (Exception err)
         {
+            _logger.LogInformation("Creating consumer {ConsumerName}", _name);
             _consumer = await _context.CreateOrUpdateConsumerAsync(_name,
                 new ConsumerConfig(_queueId.ToString())
                 {
@@ -57,6 +66,7 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
         }
         catch (Exception err)
         {
+            _logger.LogInformation("Creating stream {StreamName}", _name);
             await _context.CreateStreamAsync(new StreamConfig(_name, new[] { $"{_name}.>" }));
         }
     }
@@ -69,6 +79,7 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
         await foreach (var message in _consumer.FetchAsync<NatsMessage>(new NatsJSFetchOpts()
                            { MaxMsgs = maxCount, Expires = TimeSpan.FromSeconds(1) }))
         {
+            _logger.LogDebug("Received message {Subject}", message.Subject);
             if (!messages.TryGetValue(message.Subject, out var batch))
             {
                 var rawStreamId = message.Subject.Split('.');

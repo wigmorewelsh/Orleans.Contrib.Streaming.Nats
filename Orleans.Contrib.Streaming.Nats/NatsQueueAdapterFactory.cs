@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NATS.Client.Core;
@@ -15,37 +16,48 @@ namespace Orleans.Contrib.Streaming.Nats;
 public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
 {
     private readonly NatsConfigator _natsConfigator;
-    private readonly HashRingStreamQueueMapperOptions queueMapperOptions;
-    private readonly Serializer serialize;
+    private readonly HashRingStreamQueueMapperOptions _queueMapperOptions;
+    private readonly Serializer _serialize;
+    private readonly ILogger<NatsQueueAdapterFactory> _logger;
     private HashRingBasedStreamQueueMapper _hashRingBasedStreamQueueMapper;
 
     public NatsQueueAdapterFactory(
         string name,
         HashRingStreamQueueMapperOptions queueMapperOptions,
         NatsConfigator natsConfigator,
-        Serializer serialize)
+        Serializer serialize,
+        ILogger<NatsQueueAdapterFactory> logger)
     {
         Name = name;
-        this.queueMapperOptions = queueMapperOptions;
-        this._natsConfigator = natsConfigator;
-        this.serialize = serialize;
-        _hashRingBasedStreamQueueMapper = new HashRingBasedStreamQueueMapper(this.queueMapperOptions, name);
+        _queueMapperOptions = queueMapperOptions;
+        _natsConfigator = natsConfigator;
+        _serialize = serialize;
+        _logger = logger;
+        _hashRingBasedStreamQueueMapper = new HashRingBasedStreamQueueMapper(this._queueMapperOptions, name);
     }
 
     public string Name { get; set; }
 
     public async Task<IQueueAdapter> CreateAdapter()
     {
-        var natsOptions = NatsOpts.Default;
-        natsOptions = _natsConfigator.Configure(natsOptions); 
-        natsOptions = natsOptions with
+        try
         {
-            SerializerRegistry = new NatsOrleansSerilizerRegistry(serialize)
-        };
-        var connection = new NatsConnection(natsOptions);
-        await connection.ConnectAsync();
-        var context = new NatsJSContext(connection);
-        return new NatsAdaptor(context, Name, serialize, _hashRingBasedStreamQueueMapper);
+            var natsOptions = NatsOpts.Default;
+            natsOptions = _natsConfigator.Configure(natsOptions);
+            natsOptions = natsOptions with
+            {
+                SerializerRegistry = new NatsOrleansSerilizerRegistry(_serialize)
+            };
+            var connection = new NatsConnection(natsOptions);
+            await connection.ConnectAsync();
+            var context = new NatsJSContext(connection);
+            return new NatsAdaptor(context, Name, _serialize, _hashRingBasedStreamQueueMapper, _logger);
+        } 
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create adapter {Exception}", ex);
+            throw;
+        }
     }
 
     public IQueueAdapterCache GetQueueAdapterCache()

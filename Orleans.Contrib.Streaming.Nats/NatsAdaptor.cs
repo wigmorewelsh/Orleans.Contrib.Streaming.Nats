@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.Extensions.Logging;
 using NATS.Client.JetStream;
 using NATS.Client.JetStream.Models;
 using Orleans.Runtime;
@@ -12,14 +13,20 @@ public class NatsAdaptor : IQueueAdapter
     private readonly NatsJSContext _context;
     private Serializer _serializer;
     private readonly HashRingBasedStreamQueueMapper _hashRingBasedStreamQueueMapper;
+    private readonly ILogger _logger;
 
-    public NatsAdaptor(NatsJSContext context, string name, Serializer serializer,
-        HashRingBasedStreamQueueMapper hashRingBasedStreamQueueMapper)
+    public NatsAdaptor(
+        NatsJSContext context, 
+        string name, 
+        Serializer serializer,
+        HashRingBasedStreamQueueMapper hashRingBasedStreamQueueMapper, 
+        ILogger logger)
     {
         _context = context;
         Name = name;
         _serializer = serializer;
         _hashRingBasedStreamQueueMapper = hashRingBasedStreamQueueMapper;
+        _logger = logger;
     }
 
     public async Task QueueMessageBatchAsync<T>(StreamId streamId, IEnumerable<T> events, StreamSequenceToken? token,
@@ -41,6 +48,7 @@ public class NatsAdaptor : IQueueAdapter
             };
             var @namespace = Encoding.UTF8.GetString(streamId.Namespace.Span); 
             var key = Encoding.UTF8.GetString(streamId.Key.Span);
+            _logger.LogInformation("Publishing message to {Stream} {QueueId} {@namespace} {Key}", Name, queueId, @namespace, key);
             await _context.PublishAsync($"{Name}.{queueId}.{@namespace}.{key}", natsMessage,
                 opts: natsJsPubOpts);
         }
@@ -54,14 +62,14 @@ public class NatsAdaptor : IQueueAdapter
         }
         catch (Exception err)
         {
+            _logger.LogInformation("Creating stream {Stream}", Name);
             await _context.CreateStreamAsync(new StreamConfig(Name, new[] { $"{Name}.>" }));
         }
     }
 
     public IQueueAdapterReceiver CreateReceiver(QueueId queueId)
     {
-        var natsQueueAdapterReceiver = new NatsQueueAdapterReceiver(Name, _context, queueId, _serializer);
-        return natsQueueAdapterReceiver;
+        return new NatsQueueAdapterReceiver(Name, _context, queueId, _serializer, _logger);
     }
 
     public string Name { get; }
