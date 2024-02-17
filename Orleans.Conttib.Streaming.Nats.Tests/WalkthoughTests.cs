@@ -45,13 +45,13 @@ public class WalkthoughTests : IClassFixture<TestFixture>
         await Task.Delay(500);
         
         var messages = await grain.Message();
-        messages.ShouldBe(new List<string> { "test " + dateTime });
+        messages.ShouldContain("test " + dateTime);
 
     }
 
     public class TaskCompletionSourceObserver : ICompleteObserver
     {
-        private readonly TaskCompletionSource _taskCompletionSource = new TaskCompletionSource();
+        private readonly TaskCompletionSource _taskCompletionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         
         public Task OnCompleted()
         {

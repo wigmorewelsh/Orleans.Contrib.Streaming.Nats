@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NATS.Client.Core;
 using Orleans.Configuration;
@@ -26,6 +27,11 @@ public class TestFixture : IAsyncLifetime
     {
         public void Configure(ISiloBuilder siloBuilder)
         {
+            siloBuilder.ConfigureLogging(logging =>
+            {
+                logging.SetMinimumLevel(LogLevel.Information);
+                logging.AddConsole(cl => cl.LogToStandardErrorThreshold = LogLevel.Error);
+            });
             siloBuilder.UseLocalhostClustering();
             siloBuilder.AddNatsStreams("StreamProvider", c =>
             {
