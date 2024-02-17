@@ -27,7 +27,7 @@ jobs:
         run: |
           chmod a+x ${{ github.workspace }}/.github/workflows/entrypoint.sh
           docker cp ${{ github.workspace }}/.github/workflows/entrypoint.sh nats:/usr/local/bin/docker-entrypoint.sh
-          docker restart jetstream
+          docker restart nats
 
       - name: Setup .NET 6.0
         uses: actions/setup-dotnet@v1
