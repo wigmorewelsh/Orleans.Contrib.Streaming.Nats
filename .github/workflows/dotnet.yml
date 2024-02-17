@@ -57,7 +57,7 @@ jobs:
       - name: Test
         run: dotnet test --no-build --verbosity normal --configuration Release
         env:
-          NATS_SERVER: localhost:4222
+          NATS_SERVER: nats:4222
       - name: Pack
         run: dotnet pack --configuration Release
       - name: Create Release
