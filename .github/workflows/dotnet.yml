@@ -16,6 +16,8 @@ jobs:
         ports:
           - 4222:4222
         options: --name nats
+        volumes:
+          - ${{ github.workspace }}/.github/workflows/nats-server.conf:/nats-server.conf
 
 
     steps:
@@ -23,12 +25,6 @@ jobs:
         with:
           fetch-depth: 0
           
-      - name: start_jetstream
-        run: |
-          chmod a+x ${{ github.workspace }}/.github/workflows/entrypoint.sh
-          docker cp ${{ github.workspace }}/.github/workflows/entrypoint.sh nats:/usr/local/bin/docker-entrypoint.sh
-          docker restart nats
-
       - name: Setup .NET 6.0
         uses: actions/setup-dotnet@v1
         with:
