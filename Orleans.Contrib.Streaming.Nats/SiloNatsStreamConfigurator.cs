@@ -1,3 +1,4 @@
+using System.Buffers;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans.Configuration;
 using Orleans.Hosting;
@@ -6,7 +7,7 @@ using Orleans.Providers;
 namespace Orleans.Contrib.Streaming.Nats;
 
 public class SiloNatsStreamConfigurator<TSerializer> : SiloRecoverableStreamConfigurator, ISiloMemoryStreamConfigurator
-    where TSerializer : class, IMemoryMessageBodySerializer
+    where TSerializer : class, INatsMessageBodySerializer
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="SiloMemoryStreamConfigurator{TSerializer}"/> class.
@@ -19,4 +20,24 @@ public class SiloNatsStreamConfigurator<TSerializer> : SiloRecoverableStreamConf
     {
         this.ConfigureDelegate(services => services.ConfigureNamedOptionForLogging<HashRingStreamQueueMapperOptions>(name));
     }
+}
+
+/// <summary>
+/// Implementations of this interface are responsible for serializing MemoryMessageBody objects
+/// </summary>
+public interface INatsMessageBodySerializer
+{
+    /// <summary>
+    /// Serialize <see cref="MemoryMessageBody"/> to an array segment of bytes.
+    /// </summary>
+    /// <param name="body">The body.</param>
+    /// <returns>The serialized data.</returns>
+    public void Serialize(MemoryMessageBody body, IBufferWriter<byte> bufferWriter);
+
+    /// <summary>
+    /// Deserialize an array segment into a <see cref="MemoryMessageBody"/>
+    /// </summary>
+    /// <param name="bodyBytes">The body bytes.</param>
+    /// <returns>The deserialized message body.</returns>
+    MemoryMessageBody Deserialize(ReadOnlySequence<byte> bodyBytes);
 }
