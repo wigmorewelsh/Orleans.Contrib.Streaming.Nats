@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 using NATS.Client.JetStream;
 using NATS.Client.JetStream.Models;
+using Orleans.Providers;
 using Orleans.Runtime;
 using Orleans.Serialization;
 using Orleans.Streams;
@@ -11,14 +12,14 @@ namespace Orleans.Contrib.Streaming.Nats;
 public class NatsAdaptor : IQueueAdapter
 {
     private readonly NatsJSContext _context;
-    private Serializer _serializer;
+    private INatsMessageBodySerializer _serializer;
     private readonly HashRingBasedStreamQueueMapper _hashRingBasedStreamQueueMapper;
     private readonly ILogger _logger;
 
     public NatsAdaptor(
         NatsJSContext context, 
         string name, 
-        Serializer serializer,
+        INatsMessageBodySerializer serializer,
         HashRingBasedStreamQueueMapper hashRingBasedStreamQueueMapper, 
         ILogger logger)
     {
@@ -35,23 +36,13 @@ public class NatsAdaptor : IQueueAdapter
         var queueId = _hashRingBasedStreamQueueMapper.GetQueueForStream(streamId);
         await CheckStreamExists();
 
-        foreach (var @event in events)
-        {
-            var natsJsPubOpts = new NatsJSPubOpts() { ExpectedLastSubjectSequence = (ulong?)token?.SequenceNumber };
-            using var ms = new MemoryStream();
-            _serializer.GetSerializer<T>().Serialize(@event, ms);
-            ms.Position = 0;
-            var natsMessage = new NatsMessage()
-            {
-                Type = typeof(T),
-                Data = ms.ToArray()
-            };
-            var @namespace = Encoding.UTF8.GetString(streamId.Namespace.Span); 
-            var key = Encoding.UTF8.GetString(streamId.Key.Span);
-            _logger.LogInformation("Publishing message to {Stream} {QueueId} {@namespace} {Key}", Name, queueId, @namespace, key);
-            await _context.PublishAsync($"{Name}.{queueId}.{@namespace}.{key}", natsMessage,
-                opts: natsJsPubOpts);
-        }
+        var message = new MemoryMessageBody(events.Cast<object>(), requestContext);
+        var natsJsPubOpts = new NatsJSPubOpts() { ExpectedLastSubjectSequence = (ulong?)token?.SequenceNumber };
+        var @namespace = Encoding.UTF8.GetString(streamId.Namespace.Span);
+        var key = Encoding.UTF8.GetString(streamId.Key.Span);
+        _logger.LogInformation("Publishing message to {Stream} {QueueId} {@namespace} {Key}", Name, queueId, @namespace, key);
+        var serilizer = new NatsMemoryMessageBodySerializer(_serializer);
+        await _context.PublishAsync($"{Name}.{queueId}.{@namespace}.{key}", message, opts: natsJsPubOpts, serializer: serilizer);
     }
 
     private async Task CheckStreamExists()

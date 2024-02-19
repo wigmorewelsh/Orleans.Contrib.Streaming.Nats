@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using NATS.Client.Core;
 using NATS.Client.JetStream;
 using Orleans.Configuration;
+using Orleans.Providers;
 using Orleans.Providers.Streams.Common;
 using Orleans.Runtime;
 using Orleans.Serialization;
@@ -17,7 +18,7 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
 {
     private readonly NatsConfigator _natsConfigator;
     private readonly HashRingStreamQueueMapperOptions _queueMapperOptions;
-    private readonly Serializer _serialize;
+    private readonly INatsMessageBodySerializer _serializer;
     private readonly ILogger<NatsQueueAdapterFactory> _logger;
     private HashRingBasedStreamQueueMapper _hashRingBasedStreamQueueMapper;
 
@@ -25,13 +26,13 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
         string name,
         HashRingStreamQueueMapperOptions queueMapperOptions,
         NatsConfigator natsConfigator,
-        Serializer serialize,
+        INatsMessageBodySerializer serializer,
         ILogger<NatsQueueAdapterFactory> logger)
     {
         Name = name;
         _queueMapperOptions = queueMapperOptions;
         _natsConfigator = natsConfigator;
-        _serialize = serialize;
+        _serializer = serializer;
         _logger = logger;
         _hashRingBasedStreamQueueMapper = new HashRingBasedStreamQueueMapper(this._queueMapperOptions, name);
     }
@@ -44,14 +45,10 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
         {
             var natsOptions = NatsOpts.Default;
             natsOptions = _natsConfigator.Configure(natsOptions);
-            natsOptions = natsOptions with
-            {
-                SerializerRegistry = new NatsOrleansSerilizerRegistry(_serialize)
-            };
             var connection = new NatsConnection(natsOptions);
             await connection.ConnectAsync();
             var context = new NatsJSContext(connection);
-            return new NatsAdaptor(context, Name, _serialize, _hashRingBasedStreamQueueMapper, _logger);
+            return new NatsAdaptor(context, Name, _serializer, _hashRingBasedStreamQueueMapper, _logger);
         } 
         catch (Exception ex)
         {

@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 using NATS.Client.JetStream;
 using NATS.Client.JetStream.Models;
+using Orleans.Providers;
 using Orleans.Runtime;
 using Orleans.Serialization;
 using Orleans.Streams;
@@ -15,14 +16,14 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
     private readonly QueueId _queueId;
     private readonly NatsJSContext _natsJsContext;
     private INatsJSConsumer? _consumer;
-    private Serializer _serializer;
+    private INatsMessageBodySerializer _serializer;
     private readonly ILogger _logger;
 
     public NatsQueueAdapterReceiver(
         string name, 
         NatsJSContext context, 
         QueueId queueId, 
-        Serializer serializer,
+        INatsMessageBodySerializer serializer,
         ILogger logger)
     {
         _name = name;
@@ -75,25 +76,21 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
     {
         if (_consumer == null) return new List<IBatchContainer>();
 
-        var messages = new Dictionary<string, NatsBatchContainer>();
-        await foreach (var message in _consumer.FetchAsync<NatsMessage>(new NatsJSFetchOpts()
-                           { MaxMsgs = maxCount, Expires = TimeSpan.FromSeconds(1) }))
+        var messages = new List<IBatchContainer>();
+        var serializer = new NatsMemoryMessageBodySerializer(_serializer);
+        await foreach (var message in _consumer.FetchAsync<MemoryMessageBody>(new NatsJSFetchOpts()
+                           { MaxMsgs = maxCount, Expires = TimeSpan.FromSeconds(1) }, serializer: serializer))
         {
             _logger.LogDebug("Received message {Subject}", message.Subject);
-            if (!messages.TryGetValue(message.Subject, out var batch))
-            {
-                var rawStreamId = message.Subject.Split('.');
-                var rawNamespace = Encoding.UTF8.GetBytes(rawStreamId[2]);
-                var rawKey = Encoding.UTF8.GetBytes(rawStreamId[3]);
-                batch = new NatsBatchContainer(StreamId.Create(rawNamespace, rawKey),
-                    new NatsStreamSequenceToken(message.Metadata.Value.Sequence), _serializer);
-                messages.Add(message.Subject, batch);
-            }
-
-            batch.AddMessage(message);
+            var rawStreamId = message.Subject.Split('.');
+            var rawNamespace = Encoding.UTF8.GetBytes(rawStreamId[2]);
+            var rawKey = Encoding.UTF8.GetBytes(rawStreamId[3]);
+            var batch = new NatsBatchContainer(StreamId.Create(rawNamespace, rawKey), message,
+                new NatsStreamSequenceToken(message.Metadata.Value.Sequence), _serializer);
+            messages.Add(batch);
         }
 
-        return messages.Values.Cast<IBatchContainer>().ToList();
+        return messages;
     }
 
     public async Task MessagesDeliveredAsync(IList<IBatchContainer> messages)
@@ -102,8 +99,7 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
         {
             if (batch is not NatsBatchContainer natsBatchContainer) continue;
 
-            foreach (var message in natsBatchContainer.Messages)
-                await message.AckAsync();
+            await natsBatchContainer.MessageData.AckAsync();
         }
     }
 
