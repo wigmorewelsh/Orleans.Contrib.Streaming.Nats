@@ -81,7 +81,8 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
     {
         var queueMapperOptions = services.GetOptionsByName<HashRingStreamQueueMapperOptions>(name);
         var natsOpts = services.GetOptionsByName<NatsConfigator>(name);
-        var factory = ActivatorUtilities.CreateInstance<NatsQueueAdapterFactory>(services, name, queueMapperOptions, natsOpts);
+        var serializer = services.GetRequiredServiceByName<INatsMessageBodySerializer>(name);
+        var factory = ActivatorUtilities.CreateInstance<NatsQueueAdapterFactory>(services, name, queueMapperOptions, natsOpts, serializer);
         return factory;
     }
 }

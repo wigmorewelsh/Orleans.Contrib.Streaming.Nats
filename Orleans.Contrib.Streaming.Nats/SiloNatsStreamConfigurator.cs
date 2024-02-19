@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Providers;
+using Orleans.Runtime;
 
 namespace Orleans.Contrib.Streaming.Nats;
 
@@ -18,7 +19,11 @@ public class SiloNatsStreamConfigurator<TSerializer> : SiloRecoverableStreamConf
         string name, Action<Action<IServiceCollection>> configureServicesDelegate)
         : base(name, configureServicesDelegate, NatsQueueAdapterFactory.Create)
     {
-        this.ConfigureDelegate(services => services.ConfigureNamedOptionForLogging<HashRingStreamQueueMapperOptions>(name));
+        this.ConfigureDelegate(services =>
+        {
+            services.AddTransientNamedService<INatsMessageBodySerializer, TSerializer>(name);
+            services.ConfigureNamedOptionForLogging<HashRingStreamQueueMapperOptions>(name);
+        });
     }
 }
 
