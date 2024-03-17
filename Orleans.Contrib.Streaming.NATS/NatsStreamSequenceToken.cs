@@ -1,7 +1,7 @@
 using NATS.Client.JetStream;
 using Orleans.Streams;
 
-namespace Orleans.Contrib.Streaming.Nats;
+namespace Orleans.Contrib.Streaming.NATS;
 
 [GenerateSerializer]
 public class NatsStreamSequenceToken : StreamSequenceToken

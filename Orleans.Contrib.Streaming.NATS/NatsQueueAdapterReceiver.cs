@@ -7,7 +7,7 @@ using Orleans.Runtime;
 using Orleans.Serialization;
 using Orleans.Streams;
 
-namespace Orleans.Contrib.Streaming.Nats;
+namespace Orleans.Contrib.Streaming.NATS;
 
 public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
 {

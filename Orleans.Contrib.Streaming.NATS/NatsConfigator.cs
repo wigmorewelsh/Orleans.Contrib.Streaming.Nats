@@ -1,6 +1,6 @@
 using NATS.Client.Core;
 
-namespace Orleans.Contrib.Streaming.Nats;
+namespace Orleans.Contrib.Streaming.NATS;
 
 public class NatsConfigator
 {

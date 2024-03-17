@@ -7,33 +7,33 @@ using Orleans.Runtime;
 using Orleans.Serialization;
 using Orleans.Streams;
 
-namespace Orleans.Contrib.Streaming.Nats;
+namespace Orleans.Contrib.Streaming.NATS;
 
 public class NatsAdaptor : IQueueAdapter
 {
     private readonly NatsJSContext _context;
-    private INatsMessageBodySerializer _serializer;
-    private readonly HashRingBasedStreamQueueMapper _hashRingBasedStreamQueueMapper;
+    private readonly INatsMessageBodySerializer _serializer;
+    private readonly HashRingBasedStreamQueueMapper _mapper;
     private readonly ILogger _logger;
 
     public NatsAdaptor(
         NatsJSContext context, 
         string name, 
         INatsMessageBodySerializer serializer,
-        HashRingBasedStreamQueueMapper hashRingBasedStreamQueueMapper, 
+        HashRingBasedStreamQueueMapper mapper,
         ILogger logger)
     {
         _context = context;
         Name = name;
         _serializer = serializer;
-        _hashRingBasedStreamQueueMapper = hashRingBasedStreamQueueMapper;
+        _mapper = mapper;
         _logger = logger;
     }
 
     public async Task QueueMessageBatchAsync<T>(StreamId streamId, IEnumerable<T> events, StreamSequenceToken? token,
         Dictionary<string, object> requestContext)
     {
-        var queueId = _hashRingBasedStreamQueueMapper.GetQueueForStream(streamId);
+        var queueId = _mapper.GetQueueForStream(streamId);
         await CheckStreamExists();
 
         var message = new MemoryMessageBody(events.Cast<object>(), requestContext);
