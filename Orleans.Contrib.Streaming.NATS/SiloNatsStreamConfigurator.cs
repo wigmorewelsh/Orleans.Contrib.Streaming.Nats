@@ -5,7 +5,7 @@ using Orleans.Hosting;
 using Orleans.Providers;
 using Orleans.Runtime;
 
-namespace Orleans.Contrib.Streaming.Nats;
+namespace Orleans.Contrib.Streaming.NATS;
 
 public class SiloNatsStreamConfigurator<TSerializer> : SiloRecoverableStreamConfigurator, ISiloMemoryStreamConfigurator
     where TSerializer : class, INatsMessageBodySerializer

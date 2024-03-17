@@ -12,7 +12,7 @@ using Orleans.Runtime;
 using Orleans.Serialization;
 using Orleans.Streams;
 
-namespace Orleans.Contrib.Streaming.Nats;
+namespace Orleans.Contrib.Streaming.NATS;
 
 public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
 {
@@ -20,7 +20,7 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
     private readonly HashRingStreamQueueMapperOptions _queueMapperOptions;
     private readonly INatsMessageBodySerializer _serializer;
     private readonly ILogger<NatsQueueAdapterFactory> _logger;
-    private HashRingBasedStreamQueueMapper _hashRingBasedStreamQueueMapper;
+    private HashRingBasedStreamQueueMapper _mapper;
 
     public NatsQueueAdapterFactory(
         string name,
@@ -34,7 +34,7 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
         _natsConfigator = natsConfigator;
         _serializer = serializer;
         _logger = logger;
-        _hashRingBasedStreamQueueMapper = new HashRingBasedStreamQueueMapper(this._queueMapperOptions, name);
+        _mapper = new HashRingBasedStreamQueueMapper(this._queueMapperOptions, name);
     }
 
     public string Name { get; set; }
@@ -48,7 +48,7 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
             var connection = new NatsConnection(natsOptions);
             await connection.ConnectAsync();
             var context = new NatsJSContext(connection);
-            return new NatsAdaptor(context, Name, _serializer, _hashRingBasedStreamQueueMapper, _logger);
+            return new NatsAdaptor(context, Name, _serializer, _mapper, _logger);
         } 
         catch (Exception ex)
         {
@@ -64,7 +64,7 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
 
     public IStreamQueueMapper GetStreamQueueMapper()
     {
-        return _hashRingBasedStreamQueueMapper;
+        return _mapper;
     }
 
     public async Task<IStreamFailureHandler> GetDeliveryFailureHandler(QueueId queueId)

@@ -4,7 +4,7 @@ using Orleans.Hosting;
 using Orleans.Providers;
 using Orleans.Serialization;
 
-namespace Orleans.Contrib.Streaming.Nats;
+namespace Orleans.Contrib.Streaming.NATS;
 
 /// <summary>
 /// <see cref="ISiloBuilder"/> extension methods for configuring nats streams. 

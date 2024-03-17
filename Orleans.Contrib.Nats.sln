@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orleans.Contrib.Streaming.Nats", "Orleans.Contrib.Streaming.Nats\Orleans.Contrib.Streaming.Nats.csproj", "{2BF9CE7C-FA72-4D52-B147-4B88C17017B9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orleans.Contrib.Streaming.NATS", "Orleans.Contrib.Streaming.NATS\Orleans.Contrib.Streaming.NATS.csproj", "{2BF9CE7C-FA72-4D52-B147-4B88C17017B9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orleans.Conttib.Streaming.Nats.Tests", "Orleans.Conttib.Streaming.Nats.Tests\Orleans.Conttib.Streaming.Nats.Tests.csproj", "{0DB8251B-2E5A-4354-91B6-35DCB3AA1954}"
 EndProject

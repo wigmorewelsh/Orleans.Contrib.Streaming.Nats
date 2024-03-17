@@ -28,7 +28,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Orleans.Contrib.Streaming.Nats\Orleans.Contrib.Streaming.Nats.csproj" />
+      <ProjectReference Include="..\Orleans.Contrib.Streaming.NATS\Orleans.Contrib.Streaming.NATS.csproj" />
     </ItemGroup>
 
 </Project>
