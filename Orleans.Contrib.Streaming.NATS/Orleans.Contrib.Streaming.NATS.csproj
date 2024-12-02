@@ -9,7 +9,7 @@
 
     <ItemGroup>
       <PackageReference Include="Microsoft.Orleans.Core" Version="7.2.7" />
-      <PackageReference Include="Microsoft.Orleans.Sdk" Version="7.2.4" />
+      <PackageReference Include="Microsoft.Orleans.Sdk" Version="7.2.7" />
       <PackageReference Include="Microsoft.Orleans.Streaming" Version="7.2.7" />
       <PackageReference Include="NATS.Client.JetStream" Version="2.2.1" />
     </ItemGroup>
