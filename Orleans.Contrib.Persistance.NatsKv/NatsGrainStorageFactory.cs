@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Orleans.Storage;
@@ -13,7 +14,10 @@ public static class NatsGrainStorageFactory
     /// <param name="services">The services.</param>
     /// <param name="name">The name.</param>
     /// <returns>The storage.</returns>
-    public static IGrainStorage Create(IServiceProvider services, string name) =>
-        (IGrainStorage)ActivatorUtilities.CreateInstance<NatsGrainStorage>(services,
-            (object)services.GetRequiredService<IOptionsMonitor<NatsGrainStorageOptions>>().Get(name), (object)name);
+    public static IGrainStorage Create(IServiceProvider services, object? name)
+    {
+        Debug.Assert(name != null, nameof(name) + " != null");
+        return (IGrainStorage)ActivatorUtilities.CreateInstance<NatsGrainStorage>(services,
+            (object)services.GetRequiredService<IOptionsMonitor<NatsGrainStorageOptions>>().Get(name as string), name);
+    }
 }

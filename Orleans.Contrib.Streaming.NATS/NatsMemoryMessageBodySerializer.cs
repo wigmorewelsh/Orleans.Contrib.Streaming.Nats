@@ -23,4 +23,9 @@ public class NatsMemoryMessageBodySerializer : INatsSerializer<MemoryMessageBody
     {
         return _serializer.Deserialize(buffer);
     }
+
+    public INatsSerializer<MemoryMessageBody> CombineWith(INatsSerializer<MemoryMessageBody> next)
+    {
+        return this;
+    }
 }

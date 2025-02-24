@@ -21,7 +21,7 @@ public class SiloNatsStreamConfigurator<TSerializer> : SiloRecoverableStreamConf
     {
         this.ConfigureDelegate(services =>
         {
-            services.AddTransientNamedService<INatsMessageBodySerializer, TSerializer>(name);
+            services.AddKeyedTransient<INatsMessageBodySerializer, TSerializer>(name);
             services.ConfigureNamedOptionForLogging<HashRingStreamQueueMapperOptions>(name);
         });
     }

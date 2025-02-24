@@ -34,7 +34,7 @@ public class WalkthoughTests : IClassFixture<TestFixture>
         var reference = grainFactory.CreateObjectReference<ICompleteObserver>(completeObserver);
         await grain.Subscribe(reference);
         
-        var streamProvider = _testFixture.Services.GetRequiredServiceByName<IStreamProvider>("StreamProvider");
+        var streamProvider = _testFixture.Services.GetRequiredKeyedService<IStreamProvider>("StreamProvider");
         var streamId = StreamId.Create("MyStreamNamespace", Guid.Empty);
         var stream = streamProvider.GetStream<string>(streamId);
         var dateTime = DateTime.UtcNow;
