@@ -19,11 +19,11 @@ public static class NatsStorageConfigExtensions
     public static ISiloBuilder AddNatsGrainStorage(
         this ISiloBuilder builder,
         string name,
-        Action<OptionsBuilder<NatsGrainStorageOptions>> configureOptions = null)
+        Action<OptionsBuilder<NatsGrainStorageOptions>>? configureOptions = null)
     {
         return builder.ConfigureServices((Action<IServiceCollection>)(services =>
         {
-            Action<OptionsBuilder<NatsGrainStorageOptions>> action = configureOptions;
+            Action<OptionsBuilder<NatsGrainStorageOptions>>? action = configureOptions;
             if (action != null)
                 action(services.AddOptions<NatsGrainStorageOptions>(name));
             services
@@ -32,8 +32,8 @@ public static class NatsStorageConfigExtensions
             services.ConfigureNamedOptionForLogging<NatsGrainStorageOptions>(name);
             if (string.Equals(name, "Default", StringComparison.Ordinal))
                 services.TryAddSingleton<IGrainStorage>(
-                    (Func<IServiceProvider, IGrainStorage>)(sp => sp.GetServiceByName<IGrainStorage>("Default")));
-            services.AddSingletonNamedService<IGrainStorage>(name, NatsGrainStorageFactory.Create);
+                    (Func<IServiceProvider, IGrainStorage>)(sp => sp.GetRequiredKeyedService<IGrainStorage>("Default")));
+            services.AddKeyedSingleton<IGrainStorage>(name, NatsGrainStorageFactory.Create);
         }));
     }
 }

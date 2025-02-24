@@ -54,7 +54,15 @@ public class NatsAdaptor : IQueueAdapter
         catch (Exception err)
         {
             _logger.LogInformation("Creating stream {Stream}", Name);
-            await _context.CreateStreamAsync(new StreamConfig(Name, new[] { $"{Name}.>" }));
+            var streamConfig = new StreamConfig(Name, new[] { $"{Name}.>" })
+            {
+                Discard = StreamConfigDiscard.New,
+                DiscardNewPerSubject = true,
+                MaxMsgsPerSubject = 1000,
+                MaxBytes = 10 * 1024 * 1024,
+                MaxAge = TimeSpan.FromDays(2)
+            };
+            await _context.CreateStreamAsync(streamConfig);
         }
     }
 

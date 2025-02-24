@@ -10,9 +10,10 @@ public class NatsStreamSequenceToken : StreamSequenceToken
     {
         SequenceNumber = (long)valueSequence.Stream;
     }
-
-    public override bool Equals(StreamSequenceToken other)
+    
+    public override bool Equals(StreamSequenceToken? other)
     {
+        if (other is null) return false;
         return SequenceNumber == other.SequenceNumber;
     }
 
