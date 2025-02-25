@@ -1,9 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
-using Orleans.Runtime;
 using Orleans.Streams;
 using Shouldly;
 
-namespace Orleans.Conttib.Streaming.Nats.Tests;
+namespace Orleans.Contrib.Streaming.NATS.Tests;
 
 public class WalkthoughTests : IClassFixture<TestFixture>  
 {
