@@ -1,15 +1,7 @@
-using System.Runtime.CompilerServices;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using NATS.Client.Core;
-using Orleans.Configuration;
-using Orleans.Contrib.Streaming.NATS;
-using Orleans.Runtime;
 using Orleans.TestingHost;
 
-namespace Orleans.Conttib.Streaming.Nats.Tests;
+namespace Orleans.Contrib.Streaming.NATS.Tests;
 
 public class TestFixture : IAsyncLifetime
 {
