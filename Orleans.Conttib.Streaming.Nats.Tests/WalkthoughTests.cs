@@ -13,15 +13,7 @@ public class WalkthoughTests : IClassFixture<TestFixture>
     {
         _testFixture = testFixture;
     }
-    
-    [Fact]
-    public async Task Test1()
-    {
-        var grainFactory = _testFixture.Services.GetRequiredService<IGrainFactory>();
-        var grain = grainFactory.GetGrain<ITestGrain>(Guid.NewGuid());
-        var result = await grain.Test();
-        result.ShouldBe("Hello, World!");
-    }
+
     
     [Fact]
     public async Task Test2()
@@ -65,7 +57,6 @@ public class WalkthoughTests : IClassFixture<TestFixture>
 
 public interface ITestGrain : IGrainWithGuidKey
 {
-    Task<string> Test();
     Task Test2();
     Task<List<string>> Message();
     Task Subscribe(ICompleteObserver observer);
@@ -81,11 +72,6 @@ public class TestGrain : Grain, ITestGrain, IAsyncObserver<string>
     private List<string> _messages = new();
     private StreamSubscriptionHandle<string> _sub;
     private List<ICompleteObserver> _observers = new();
-
-    public Task<string> Test()
-    {
-        return Task.FromResult("Hello, World!");
-    }
 
     public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
     {
