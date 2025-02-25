@@ -1,8 +1,4 @@
-using System.Buffers;
-using Microsoft.Extensions.DependencyInjection;
 using Orleans.Hosting;
-using Orleans.Providers;
-using Orleans.Serialization;
 
 namespace Orleans.Contrib.Streaming.NATS;
 
@@ -21,7 +17,7 @@ public static class SiloBuilderNatsStreamExtensions
     /// <param name="configure">The configuration delegate.</param>
     /// <returns>The silo builder.</returns>
     public static ISiloBuilder AddNatsStreams(this ISiloBuilder builder, string name,
-        Action<ISiloMemoryStreamConfigurator> configure = null)
+        Action<INatsStreamConfigurator>? configure = null)
     {
         return AddNatsStreams<DefaultNatsMessageBodySerializer>(builder, name, configure);
     }
@@ -35,7 +31,7 @@ public static class SiloBuilderNatsStreamExtensions
     /// <param name="configure">The configuration delegate.</param>
     /// <returns>The silo builder.</returns>
     public static ISiloBuilder AddNatsStreams<TSerializer>(this ISiloBuilder builder, string name,
-        Action<ISiloMemoryStreamConfigurator> configure = null)
+        Action<INatsStreamConfigurator>? configure = null)
         where TSerializer : class, INatsMessageBodySerializer
     {
         //the constructor wire up DI with all default components of the streams , so need to be called regardless of configureStream null or not
@@ -44,43 +40,5 @@ public static class SiloBuilderNatsStreamExtensions
         );
         configure?.Invoke(natsStreamConfigurator);
         return builder;
-    }
-}
-
-/// <summary>
-/// Default <see cref="IMemoryMessageBodySerializer"/> implementation.
-/// </summary>
-[Serializable, GenerateSerializer, Immutable]
-[SerializationCallbacks(typeof(Runtime.OnDeserializedCallbacks))]
-public sealed class DefaultNatsMessageBodySerializer : INatsMessageBodySerializer, IOnDeserialized
-{
-    [NonSerialized]
-    private Serializer<MemoryMessageBody> serializer;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DefaultMemoryMessageBodySerializer" /> class.
-    /// </summary>
-    /// <param name="serializer">The serializer.</param>
-    public DefaultNatsMessageBodySerializer(Serializer<MemoryMessageBody> serializer)
-    {
-        this.serializer = serializer;
-    }
-
-    /// <inheritdoc />
-    public void Serialize(MemoryMessageBody body, IBufferWriter<byte> bufferWriter)
-    {
-        serializer.Serialize(body, bufferWriter);
-    }
-
-    /// <inheritdoc />
-    public MemoryMessageBody Deserialize(ReadOnlySequence<byte> bodyBytes)
-    {
-        return serializer.Deserialize(bodyBytes);
-    }
-
-    /// <inheritdoc />
-    void IOnDeserialized.OnDeserialized(DeserializationContext context)
-    {
-        this.serializer = context.ServiceProvider.GetRequiredService<Serializer<MemoryMessageBody>>();
     }
 }

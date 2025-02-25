@@ -1,15 +1,17 @@
-using System.Buffers;
 using Microsoft.Extensions.DependencyInjection;
+using NATS.Client.Hosting;
+using NATS.Extensions.Microsoft.DependencyInjection;
 using Orleans.Configuration;
 using Orleans.Hosting;
-using Orleans.Providers;
 using Orleans.Runtime;
 
 namespace Orleans.Contrib.Streaming.NATS;
 
-public class SiloNatsStreamConfigurator<TSerializer> : SiloRecoverableStreamConfigurator, ISiloMemoryStreamConfigurator
+public class SiloNatsStreamConfigurator<TSerializer> : SiloRecoverableStreamConfigurator, INatsStreamConfigurator
     where TSerializer : class, INatsMessageBodySerializer
 {
+    private readonly string _name;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="SiloMemoryStreamConfigurator{TSerializer}"/> class.
     /// </summary>
@@ -19,30 +21,25 @@ public class SiloNatsStreamConfigurator<TSerializer> : SiloRecoverableStreamConf
         string name, Action<Action<IServiceCollection>> configureServicesDelegate)
         : base(name, configureServicesDelegate, NatsQueueAdapterFactory.Create)
     {
+        _name = name;
         this.ConfigureDelegate(services =>
         {
             services.AddKeyedTransient<INatsMessageBodySerializer, TSerializer>(name);
             services.ConfigureNamedOptionForLogging<HashRingStreamQueueMapperOptions>(name);
         });
     }
-}
 
-/// <summary>
-/// Implementations of this interface are responsible for serializing MemoryMessageBody objects
-/// </summary>
-public interface INatsMessageBodySerializer
-{
-    /// <summary>
-    /// Serialize <see cref="MemoryMessageBody"/> to an array segment of bytes.
-    /// </summary>
-    /// <param name="body">The body.</param>
-    /// <returns>The serialized data.</returns>
-    public void Serialize(MemoryMessageBody body, IBufferWriter<byte> bufferWriter);
+    public void ConfigureNats(Action<NatsBuilder>? configure = null)
+    {
+        ConfigureDelegate(services =>
+        {
+            void BuildAction(NatsBuilder c)
+            {
+                c.WithKey(_name);
+                configure?.Invoke(c);
+            }
 
-    /// <summary>
-    /// Deserialize an array segment into a <see cref="MemoryMessageBody"/>
-    /// </summary>
-    /// <param name="bodyBytes">The body bytes.</param>
-    /// <returns>The deserialized message body.</returns>
-    MemoryMessageBody Deserialize(ReadOnlySequence<byte> bodyBytes);
+            services.AddNatsClient(BuildAction);
+        });
+    }
 }

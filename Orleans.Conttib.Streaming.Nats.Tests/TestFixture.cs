@@ -37,10 +37,14 @@ public class TestFixture : IAsyncLifetime
             {
                 if (Environment.GetEnvironmentVariable("NATS_SERVER") is { } natserver)
                 {
-                    c.Configure<NatsConfigator>(b => b.Configure(d => d.AddConfigurator(opt => opt with
+                    c.ConfigureNats(n =>
                     {
-                        Url = natserver
-                    })));
+                        n.ConfigureOptions(o => o with { Url = natserver });
+                    });
+                }
+                else
+                {
+                    c.ConfigureNats();
                 }
             });
             siloBuilder.AddMemoryGrainStorage("PubSubStore");
