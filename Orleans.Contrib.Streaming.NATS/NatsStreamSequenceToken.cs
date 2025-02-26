@@ -1,4 +1,5 @@
 using NATS.Client.JetStream;
+using Orleans.Providers.Streams.Common;
 using Orleans.Streams;
 
 namespace Orleans.Contrib.Streaming.NATS;
@@ -24,4 +25,9 @@ public class NatsStreamSequenceToken : StreamSequenceToken
 
     [Id(0)] public override long SequenceNumber { get; protected set; }
     [Id(1)] public override int EventIndex { get; protected set; }
+    
+    public EventSequenceToken CreateSequenceTokenForEvent(int eventInd)
+    {
+        return new EventSequenceToken(SequenceNumber, eventInd);
+    }
 }

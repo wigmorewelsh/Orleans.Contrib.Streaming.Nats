@@ -9,8 +9,6 @@ namespace Orleans.Contrib.Streaming.NATS;
 [Alias("Orleans.Contrib.Streaming.NATS.NatsBatchContainer")]
 public class NatsBatchContainer : IBatchContainer
 {
-    // public NatsJSMsg<MemoryMessageBody> MessageData { get; }
-
     public NatsBatchContainer(StreamId streamId,
         NatsStreamSequenceToken sequenceToken, List<object>? dataEvents, string? replyTo)
     {
@@ -18,14 +16,15 @@ public class NatsBatchContainer : IBatchContainer
         ReplyTo = replyTo;
         StreamId = streamId;
         SequenceToken = sequenceToken;
-        realToken = new EventSequenceToken(sequenceToken.SequenceNumber);
     }
 
     public IEnumerable<Tuple<T, StreamSequenceToken>> GetEvents<T>()
     {
         if (Events == null) return [];
         
-        return Events.Cast<T>().Select((e, i) => Tuple.Create<T, StreamSequenceToken>(e, realToken.CreateSequenceTokenForEvent(i)));
+        var sequenceToken = (SequenceToken as NatsStreamSequenceToken)!;
+        
+        return Events.Cast<T>().Select((e, i) => Tuple.Create<T, StreamSequenceToken>(e, sequenceToken.CreateSequenceTokenForEvent(i)));
     }
 
     public bool ImportRequestContext() => false;
@@ -41,6 +40,4 @@ public class NatsBatchContainer : IBatchContainer
     
     [Id(3)]
     public string? ReplyTo { get; }
-    [Id(4)]
-    private readonly EventSequenceToken realToken;
 }
