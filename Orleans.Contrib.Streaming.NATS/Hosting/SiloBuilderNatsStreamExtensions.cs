@@ -17,7 +17,7 @@ public static class SiloBuilderNatsStreamExtensions
     /// <param name="configure">The configuration delegate.</param>
     /// <returns>The silo builder.</returns>
     public static ISiloBuilder AddNatsStreams(this ISiloBuilder builder, string name,
-        Action<INatsStreamConfigurator>? configure = null)
+        Action<ISiloNatsStreamConfigurator>? configure = null)
     {
         return AddNatsStreams<DefaultNatsMessageBodySerializer>(builder, name, configure);
     }
@@ -31,11 +31,11 @@ public static class SiloBuilderNatsStreamExtensions
     /// <param name="configure">The configuration delegate.</param>
     /// <returns>The silo builder.</returns>
     public static ISiloBuilder AddNatsStreams<TSerializer>(this ISiloBuilder builder, string name,
-        Action<INatsStreamConfigurator>? configure = null)
+        Action<ISiloNatsStreamConfigurator>? configure = null)
         where TSerializer : class, INatsMessageBodySerializer
     {
         //the constructor wire up DI with all default components of the streams , so need to be called regardless of configureStream null or not
-        var natsStreamConfigurator = new SiloNatsStreamConfigurator<TSerializer>(name,
+        var natsStreamConfigurator = new SiloSiloNatsStreamConfigurator<TSerializer>(name,
             configureDelegate => builder.ConfigureServices(configureDelegate)
         );
         configure?.Invoke(natsStreamConfigurator);

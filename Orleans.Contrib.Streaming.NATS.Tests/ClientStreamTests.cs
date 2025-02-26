@@ -74,6 +74,44 @@ public class ClientStreamTests : IClassFixture<TestFixture>
         messages.ShouldContain("test " + dateTime);
     }
 
+    public class StreamObserver : IAsyncObserver<string>
+    {
+        public List<string> Messages = new();
+        
+        public Task OnNextAsync(string item, StreamSequenceToken? token = null)
+        {
+            Messages.Add(item);
+            return Task.CompletedTask;
+        }
+
+        public Task OnErrorAsync(Exception ex)
+        {
+            return Task.CompletedTask;
+        }
+    }
+    
+    [Fact]
+    public async Task WhenMessageIsPublishedFromServer_ObserverReceivesCompletion()
+    {
+        var streamGuid = Guid.NewGuid();
+
+        var observer = new StreamObserver();
+        
+        var client = _testFixture.Client;
+        var streamProvider = client.GetStreamProvider(StreamProvider);
+        var streamId = StreamId.Create(StreamNamespace, streamGuid);
+        var stream = streamProvider.GetStream<string>(streamId);
+        await stream.SubscribeAsync(observer);
+        
+        var grainFactory = _testFixture.Services.GetRequiredService<IGrainFactory>();
+        var publisherGrain = grainFactory.GetGrain<IPublisherGrain>(Guid.NewGuid());
+        await publisherGrain.Publish(StreamProvider, StreamNamespace, streamGuid, "test");
+        
+        await Task.Delay(5000);
+        
+        observer.Messages.ShouldContain("test");
+    }
+
     public class TaskCompletionSourceObserver : ICompleteObserver
     {
         private readonly TaskCompletionSource _taskCompletionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
