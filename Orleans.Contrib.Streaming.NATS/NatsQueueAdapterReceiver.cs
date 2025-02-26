@@ -15,7 +15,7 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
     private readonly NatsJSContext _context;
     private readonly QueueId _queueId;
     private INatsJSConsumer? _consumer;
-    private INatsMessageBodySerializer _serializer;
+    private readonly INatsMessageBodySerializer _serializer;
     private readonly ILogger _logger;
 
     public NatsQueueAdapterReceiver(
