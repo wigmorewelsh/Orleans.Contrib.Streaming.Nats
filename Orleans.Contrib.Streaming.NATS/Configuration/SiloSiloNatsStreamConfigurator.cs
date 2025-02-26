@@ -7,7 +7,7 @@ using Orleans.Runtime;
 
 namespace Orleans.Contrib.Streaming.NATS;
 
-public class SiloNatsStreamConfigurator<TSerializer> : SiloRecoverableStreamConfigurator, INatsStreamConfigurator
+public class SiloSiloNatsStreamConfigurator<TSerializer> : SiloRecoverableStreamConfigurator, ISiloNatsStreamConfigurator
     where TSerializer : class, INatsMessageBodySerializer
 {
     private readonly string _name;
@@ -17,7 +17,7 @@ public class SiloNatsStreamConfigurator<TSerializer> : SiloRecoverableStreamConf
     /// </summary>
     /// <param name="name">The stream provider name.</param>
     /// <param name="configureServicesDelegate">The services configuration delegate.</param>
-    public SiloNatsStreamConfigurator(
+    public SiloSiloNatsStreamConfigurator(
         string name, Action<Action<IServiceCollection>> configureServicesDelegate)
         : base(name, configureServicesDelegate, NatsQueueAdapterFactory.Create)
     {

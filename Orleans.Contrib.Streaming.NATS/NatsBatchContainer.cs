@@ -1,5 +1,3 @@
-using NATS.Client.JetStream;
-using Orleans.Providers;
 using Orleans.Providers.Streams.Common;
 using Orleans.Runtime;
 using Orleans.Serialization;
@@ -7,17 +5,17 @@ using Orleans.Streams;
 
 namespace Orleans.Contrib.Streaming.NATS;
 
+[GenerateSerializer]
+[Alias("Orleans.Contrib.Streaming.NATS.NatsBatchContainer")]
 public class NatsBatchContainer : IBatchContainer
 {
-    public NatsJSMsg<MemoryMessageBody> MessageData { get; }
-    private readonly INatsMessageBodySerializer _serializer;
-    private readonly EventSequenceToken realToken;
+    // public NatsJSMsg<MemoryMessageBody> MessageData { get; }
 
-    public NatsBatchContainer(StreamId streamId, NatsJSMsg<MemoryMessageBody> messageData, NatsStreamSequenceToken sequenceToken,
-        INatsMessageBodySerializer serializer)
+    public NatsBatchContainer(StreamId streamId,
+        NatsStreamSequenceToken sequenceToken, List<object>? dataEvents, string? replyTo)
     {
-        MessageData = messageData;
-        _serializer = serializer;
+        Events = dataEvents;
+        ReplyTo = replyTo;
         StreamId = streamId;
         SequenceToken = sequenceToken;
         realToken = new EventSequenceToken(sequenceToken.SequenceNumber);
@@ -25,11 +23,24 @@ public class NatsBatchContainer : IBatchContainer
 
     public IEnumerable<Tuple<T, StreamSequenceToken>> GetEvents<T>()
     {
-        return MessageData.Data.Events.Cast<T>().Select((e, i) => Tuple.Create<T, StreamSequenceToken>(e, realToken.CreateSequenceTokenForEvent(i)));
+        if (Events == null) return [];
+        
+        return Events.Cast<T>().Select((e, i) => Tuple.Create<T, StreamSequenceToken>(e, realToken.CreateSequenceTokenForEvent(i)));
     }
 
     public bool ImportRequestContext() => false;
 
+    [Id(0)]
     public StreamId StreamId { get; }
+   
+    [Id(1)]
     public StreamSequenceToken SequenceToken { get; }
+    
+    [Id(2)]
+    public List<object>? Events { get; set; }
+    
+    [Id(3)]
+    public string? ReplyTo { get; }
+    [Id(4)]
+    private readonly EventSequenceToken realToken;
 }

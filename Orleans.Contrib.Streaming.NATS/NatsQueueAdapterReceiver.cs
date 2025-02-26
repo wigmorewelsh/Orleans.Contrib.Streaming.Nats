@@ -14,7 +14,6 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
     private readonly string _name;
     private readonly NatsJSContext _context;
     private readonly QueueId _queueId;
-    private readonly NatsJSContext _natsJsContext;
     private INatsJSConsumer? _consumer;
     private INatsMessageBodySerializer _serializer;
     private readonly ILogger _logger;
@@ -85,8 +84,8 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
             var rawStreamId = message.Subject.Split('.');
             var rawNamespace = Encoding.UTF8.GetBytes(rawStreamId[2]);
             var rawKey = Encoding.UTF8.GetBytes(rawStreamId[3]);
-            var batch = new NatsBatchContainer(StreamId.Create(rawNamespace, rawKey), message,
-                new NatsStreamSequenceToken(message.Metadata.Value.Sequence), _serializer);
+            var batch = new NatsBatchContainer(StreamId.Create(rawNamespace, rawKey),
+                new NatsStreamSequenceToken(message.Metadata.Value.Sequence), message.Data?.Events, message.ReplyTo);
             messages.Add(batch);
         }
 
@@ -97,9 +96,12 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
     {
         foreach (var batch in messages)
         {
-            if (batch is not NatsBatchContainer natsBatchContainer) continue;
+            if (batch is not NatsBatchContainer natsBatchContainer ) continue;
 
-            await natsBatchContainer.MessageData.AckAsync();
+            if (natsBatchContainer.ReplyTo is { } replyTo)
+            {
+                await _context.PublishAsync(replyTo, NatsJSConstants.Ack);
+            }
         }
     }
 
