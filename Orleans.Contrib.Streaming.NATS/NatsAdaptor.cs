@@ -47,21 +47,25 @@ public class NatsAdaptor : IQueueAdapter
 
     private async Task CheckStreamExists()
     {
+        var streamConfig = new StreamConfig(Name, new[] { $"{Name}.>" })
+        {
+            Discard = StreamConfigDiscard.New,
+            DiscardNewPerSubject = true,
+            MaxMsgsPerSubject = 1000,
+            MaxBytes = 10 * 1024 * 1024,
+            MaxAge = TimeSpan.FromDays(2),
+            Retention = StreamConfigRetention.Interest
+        };
         try
         {
             var stream = await _context.GetStreamAsync(Name);
+            await stream.UpdateAsync(streamConfig);
+            // await stream.PurgeAsync(new StreamPurgeRequest());
         }
         catch (Exception err)
         {
             _logger.LogInformation("Creating stream {Stream}", Name);
-            var streamConfig = new StreamConfig(Name, new[] { $"{Name}.>" })
-            {
-                Discard = StreamConfigDiscard.New,
-                DiscardNewPerSubject = true,
-                MaxMsgsPerSubject = 1000,
-                MaxBytes = 10 * 1024 * 1024,
-                MaxAge = TimeSpan.FromDays(2)
-            };
+       
             await _context.CreateStreamAsync(streamConfig);
         }
     }

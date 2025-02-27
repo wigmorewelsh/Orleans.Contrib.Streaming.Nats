@@ -1,5 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using NATS.Client.Core;
+using NATS.Client.JetStream;
+using NATS.Client.JetStream.Models;
 using Orleans.TestingHost;
 
 namespace Orleans.Contrib.Streaming.NATS.Tests.Fixtures;
@@ -27,7 +30,7 @@ public class TestFixture : IAsyncLifetime
                 logging.SetMinimumLevel(LogLevel.Information);
                 logging.AddConsole(cl => cl.LogToStandardErrorThreshold = LogLevel.Error);
             });
-            siloBuilder.UseLocalhostClustering();
+            // siloBuilder.UseLocalhostClustering();
             siloBuilder.AddNatsStreams("StreamProvider", c =>
             {
                 if (Environment.GetEnvironmentVariable("NATS_SERVER") is { } natserver)
@@ -51,7 +54,7 @@ public class TestFixture : IAsyncLifetime
         public void Configure(IConfiguration configuration, IClientBuilder clientBuilder)
         {
             clientBuilder
-                .UseLocalhostClustering()
+                // .UseLocalhostClustering()
                 .AddNatsStreams("StreamProvider", c =>
                 {
                     if (Environment.GetEnvironmentVariable("NATS_SERVER") is { } natserver)
@@ -69,16 +72,45 @@ public class TestFixture : IAsyncLifetime
         }
     }
 
+    public async Task KillClientAsync()
+    {
+        await _host.KillClientAsync();
+        // make sure dead client has had time to drop
+        await Task.Delay(TimeSpan.FromMinutes(1) + TimeSpan.FromSeconds(5));
+        await _host.InitializeClientAsync();
+    }
+    
     async Task IAsyncLifetime.InitializeAsync()
     {
-        var builder = new TestClusterBuilder();
+        if (Environment.GetEnvironmentVariable("NATS_SERVER") is { } natserver)
+        {
+            var nats = new NatsConnection(new NatsOpts(){ Url = natserver });
+            await nats.ConnectAsync();
+            var context = new NatsJSContext(nats);
+            await context.PurgeStreamAsync("StreamProvider", new StreamPurgeRequest());
+        }
+        else
+        {
+            var nats = new NatsConnection();
+            await nats.ConnectAsync();
+            var context = new NatsJSContext(nats);
+            await context.PurgeStreamAsync("StreamProvider", new StreamPurgeRequest());
+        } 
         
+        var builder = new TestClusterBuilder
+        {
+            Options =
+            {
+                InitialSilosCount = 1
+            }
+        };
+
         builder.AddSiloBuilderConfigurator<SiloBuilderConfigurator>();
         builder.AddClientBuilderConfigurator<ClientBuilderConfigurator>();
 
         _host = builder.Build();
-        _silo = (InProcessSiloHandle)await _host.StartSiloAsync(1, new TestClusterOptions() { });
-        await _host.InitializeClientAsync();
+        await _host.DeployAsync();
+        _silo = (InProcessSiloHandle) _host.Primary;
     }
 
     async Task IAsyncLifetime.DisposeAsync()
