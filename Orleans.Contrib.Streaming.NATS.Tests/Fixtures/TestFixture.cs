@@ -82,20 +82,20 @@ public class TestFixture : IAsyncLifetime
     
     async Task IAsyncLifetime.InitializeAsync()
     {
-        if (Environment.GetEnvironmentVariable("NATS_SERVER") is { } natserver)
-        {
-            var nats = new NatsConnection(new NatsOpts(){ Url = natserver });
-            await nats.ConnectAsync();
-            var context = new NatsJSContext(nats);
-            await context.PurgeStreamAsync("StreamProvider", new StreamPurgeRequest());
-        }
-        else
-        {
-            var nats = new NatsConnection();
-            await nats.ConnectAsync();
-            var context = new NatsJSContext(nats);
-            await context.PurgeStreamAsync("StreamProvider", new StreamPurgeRequest());
-        } 
+        // if (Environment.GetEnvironmentVariable("NATS_SERVER") is { } natserver)
+        // {
+        //     var nats = new NatsConnection(new NatsOpts(){ Url = natserver });
+        //     await nats.ConnectAsync();
+        //     var context = new NatsJSContext(nats);
+        //     await context.PurgeStreamAsync("StreamProvider", new StreamPurgeRequest());
+        // }
+        // else
+        // {
+        //     var nats = new NatsConnection();
+        //     await nats.ConnectAsync();
+        //     var context = new NatsJSContext(nats);
+        //     await context.PurgeStreamAsync("StreamProvider", new StreamPurgeRequest());
+        // } 
         
         var builder = new TestClusterBuilder
         {
