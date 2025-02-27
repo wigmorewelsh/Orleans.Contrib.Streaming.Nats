@@ -69,9 +69,10 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
         return new NoOpStreamDeliveryFailureHandler();
     }
 
+    private ConcurrentDictionary<QueueId, SimpleQueueCache> _cache = new();
     public IQueueCache CreateQueueCache(QueueId queueId)
     {
-        return new SimpleQueueCache(1024 * 4, NullLogger.Instance);
+        return _cache.GetOrAdd(queueId, new SimpleQueueCache(1024 * 4, NullLogger.Instance));
     }
     
     public static NatsQueueAdapterFactory Create(IServiceProvider services, string name)

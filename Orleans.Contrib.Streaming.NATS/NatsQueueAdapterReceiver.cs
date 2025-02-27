@@ -75,33 +75,48 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
     {
         if (_consumer == null) return new List<IBatchContainer>();
 
-        var messages = new List<IBatchContainer>();
-        var serializer = new NatsMemoryMessageBodySerializer(_serializer);
-        await foreach (var message in _consumer.FetchAsync<MemoryMessageBody>(new NatsJSFetchOpts()
-                           { MaxMsgs = maxCount, Expires = TimeSpan.FromSeconds(1) }, serializer: serializer))
+        try
         {
-            _logger.LogDebug("Received message {Subject}", message.Subject);
-            var rawStreamId = message.Subject.Split('.');
-            var rawNamespace = Encoding.UTF8.GetBytes(rawStreamId[2]);
-            var rawKey = Encoding.UTF8.GetBytes(rawStreamId[3]);
-            var batch = new NatsBatchContainer(StreamId.Create(rawNamespace, rawKey),
-                new NatsStreamSequenceToken(message.Metadata.Value.Sequence), message.Data?.Events, message.ReplyTo);
-            messages.Add(batch);
-        }
+            var messages = new List<IBatchContainer>();
+            var serializer = new NatsMemoryMessageBodySerializer(_serializer);
+            await foreach (var message in _consumer.FetchAsync<MemoryMessageBody>(new NatsJSFetchOpts()
+                               { MaxMsgs = maxCount, Expires = TimeSpan.FromSeconds(1) }, serializer: serializer))
+            {
+                _logger.LogDebug("Received message {Subject}", message.Subject);
+                var rawStreamId = message.Subject.Split('.');
+                var rawNamespace = Encoding.UTF8.GetBytes(rawStreamId[2]);
+                var rawKey = Encoding.UTF8.GetBytes(rawStreamId[3]);
+                var batch = new NatsBatchContainer(StreamId.Create(rawNamespace, rawKey),
+                    new NatsStreamSequenceToken(message.Metadata.Value.Sequence), message.Data?.Events,
+                    message.ReplyTo);
+                messages.Add(batch);
+            }
 
-        return messages;
+            return messages;
+        } 
+        catch (Exception err)
+        {
+            _logger.LogError(err, "Error receiving messages");
+            return new List<IBatchContainer>();
+        }
     }
 
     public async Task MessagesDeliveredAsync(IList<IBatchContainer> messages)
     {
-        foreach (var batch in messages)
+        try
         {
-            if (batch is not NatsBatchContainer natsBatchContainer ) continue;
-
-            if (natsBatchContainer.ReplyTo is { } replyTo)
+            foreach (var batch in messages)
             {
-                await _context.PublishAsync(replyTo, NatsJSConstants.Ack);
+                if (batch is not NatsBatchContainer natsBatchContainer) continue;
+
+                if (natsBatchContainer.ReplyTo is { } replyTo)
+                {
+                    await _context.PublishAsync(replyTo, NatsJSConstants.Ack);
+                }
             }
+        } catch (Exception err)
+        {
+            _logger.LogError(err, "Error delivering messages");
         }
     }
 

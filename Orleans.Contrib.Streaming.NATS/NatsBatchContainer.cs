@@ -20,11 +20,16 @@ public class NatsBatchContainer : IBatchContainer
 
     public IEnumerable<Tuple<T, StreamSequenceToken>> GetEvents<T>()
     {
-        if (Events == null) return [];
+        if (Events == null) yield break;
         
         var sequenceToken = (SequenceToken as NatsStreamSequenceToken)!;
-        
-        return Events.Cast<T>().Select((e, i) => Tuple.Create<T, StreamSequenceToken>(e, sequenceToken.CreateSequenceTokenForEvent(i)));
+
+        var i = 0;
+        foreach (var evt in Events.Cast<T>())
+        {
+            yield return Tuple.Create<T, StreamSequenceToken>(evt, sequenceToken.CreateSequenceTokenForEvent(i));
+            i++;
+        }
     }
 
     public bool ImportRequestContext() => false;

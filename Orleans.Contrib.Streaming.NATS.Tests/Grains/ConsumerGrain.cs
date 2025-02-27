@@ -10,8 +10,8 @@ public class ConsumerGrain : Grain, IConsumerGrain, IAsyncObserver<string>
 
     public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
     {
-        if(_sub is {} sub)
-            await sub.UnsubscribeAsync();
+        // if(_sub is {} sub)
+            // await sub.UnsubscribeAsync();
     }
     
     public Task Subscribe(ICompleteObserver observer)
