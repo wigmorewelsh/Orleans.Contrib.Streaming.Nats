@@ -36,4 +36,20 @@ public class ClusterClientSiloNatsStreamConfigurator<TSerializer> : ClusterClien
             services.AddNatsClient(BuildAction);
         });
     }
+
+    public void ConfigureStream(Action<NatsStreamOptions> configure)
+    {
+        ConfigureDelegate(services =>
+        {
+            services.Configure(_name, configure);
+        });
+    }
+
+    public void ConfigureConsumers(Action<NatsConsumerOptions> configure)
+    {
+        ConfigureDelegate(services =>
+        {
+            services.Configure(_name, configure);
+        });
+    }
 }

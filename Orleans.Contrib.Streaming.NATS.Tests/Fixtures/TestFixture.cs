@@ -7,8 +7,13 @@ using Orleans.TestingHost;
 
 namespace Orleans.Contrib.Streaming.NATS.Tests.Fixtures;
 
+public interface ITestSettings
+{
+    public static abstract string StreamName { get; }
+}
+
 // ReSharper disable once ClassNeverInstantiated.Global
-public class TestFixture : IAsyncLifetime
+public class TestFixture<TTestSettings> : IAsyncLifetime where TTestSettings : ITestSettings
 {
     private TestCluster _host = null!;
     private InProcessSiloHandle _silo = null!;
@@ -20,8 +25,8 @@ public class TestFixture : IAsyncLifetime
     {
         public TaskCompletionSource TaskCompletionSource { get; } = new TaskCompletionSource();
     }
-    
-    internal class SiloBuilderConfigurator : ISiloConfigurator
+
+    internal class SiloBuilderConfigurator<TTestSettings> : ISiloConfigurator where TTestSettings : ITestSettings
     {
         public void Configure(ISiloBuilder siloBuilder)
         {
@@ -35,21 +40,24 @@ public class TestFixture : IAsyncLifetime
             {
                 if (Environment.GetEnvironmentVariable("NATS_SERVER") is { } natserver)
                 {
-                    c.ConfigureNats(n =>
-                    {
-                        n.ConfigureOptions(o => o with { Url = natserver });
-                    });
+                    c.ConfigureNats(n => { n.ConfigureOptions(o => o with { Url = natserver }); });
                 }
                 else
                 {
                     c.ConfigureNats();
                 }
+
+                c.ConfigureStream(s =>
+                {
+                    s.CreateStream = true;
+                    s.StreamName = TTestSettings.StreamName;
+                });
             });
             siloBuilder.AddMemoryGrainStorage("PubSubStore");
         }
     }
-    
-    private class ClientBuilderConfigurator : IClientBuilderConfigurator
+
+    private class ClientBuilderConfigurator<TTestSettings> : IClientBuilderConfigurator where TTestSettings : ITestSettings
     {
         public void Configure(IConfiguration configuration, IClientBuilder clientBuilder)
         {
@@ -59,15 +67,18 @@ public class TestFixture : IAsyncLifetime
                 {
                     if (Environment.GetEnvironmentVariable("NATS_SERVER") is { } natserver)
                     {
-                        c.ConfigureNats(n =>
-                        {
-                            n.ConfigureOptions(o => o with { Url = natserver });
-                        });
+                        c.ConfigureNats(n => { n.ConfigureOptions(o => o with { Url = natserver }); });
                     }
                     else
                     {
                         c.ConfigureNats();
-                    } 
+                    }
+                    
+                    c.ConfigureStream(s =>
+                    {
+                        s.CreateStream = true;
+                        s.StreamName = TTestSettings.StreamName;
+                    });
                 });
         }
     }
@@ -79,7 +90,7 @@ public class TestFixture : IAsyncLifetime
         await Task.Delay(TimeSpan.FromMinutes(1) + TimeSpan.FromSeconds(5));
         await _host.InitializeClientAsync();
     }
-    
+
     async Task IAsyncLifetime.InitializeAsync()
     {
         // if (Environment.GetEnvironmentVariable("NATS_SERVER") is { } natserver)
@@ -96,7 +107,7 @@ public class TestFixture : IAsyncLifetime
         //     var context = new NatsJSContext(nats);
         //     await context.PurgeStreamAsync("StreamProvider", new StreamPurgeRequest());
         // } 
-        
+
         var builder = new TestClusterBuilder
         {
             Options =
@@ -105,12 +116,12 @@ public class TestFixture : IAsyncLifetime
             }
         };
 
-        builder.AddSiloBuilderConfigurator<SiloBuilderConfigurator>();
-        builder.AddClientBuilderConfigurator<ClientBuilderConfigurator>();
+        builder.AddSiloBuilderConfigurator<SiloBuilderConfigurator<TTestSettings>>();
+        builder.AddClientBuilderConfigurator<ClientBuilderConfigurator<TTestSettings>>();
 
         _host = builder.Build();
         await _host.DeployAsync();
-        _silo = (InProcessSiloHandle) _host.Primary;
+        _silo = (InProcessSiloHandle)_host.Primary;
     }
 
     async Task IAsyncLifetime.DisposeAsync()
@@ -118,4 +129,3 @@ public class TestFixture : IAsyncLifetime
         await _host.DisposeAsync();
     }
 }
-

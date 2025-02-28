@@ -6,13 +6,18 @@ using Shouldly;
 
 namespace Orleans.Contrib.Streaming.NATS.Tests;
 
-public class ImplicitSubscriberTests : IClassFixture<TestFixture>
+public class ImplicitSubscriberTests : IClassFixture<TestFixture<ImplicitSubscriberTests.TestSettings>>
 {
+    public class TestSettings : ITestSettings
+    {
+        public static string StreamName => nameof(ImplicitSubscriberTests);
+    }
+    
     private const string StreamProvider = "StreamProvider";
     
-    private TestFixture _testFixture;
+    private TestFixture<TestSettings> _testFixture;
     
-    public ImplicitSubscriberTests(TestFixture testFixture)
+    public ImplicitSubscriberTests(TestFixture<TestSettings> testFixture)
     {
         _testFixture = testFixture;
     }

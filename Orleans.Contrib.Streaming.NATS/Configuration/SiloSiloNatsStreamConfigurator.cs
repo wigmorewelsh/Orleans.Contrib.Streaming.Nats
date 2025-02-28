@@ -42,4 +42,33 @@ public class SiloSiloNatsStreamConfigurator<TSerializer> : SiloRecoverableStream
             services.AddNatsClient(BuildAction);
         });
     }
+    
+    public void ConfigureStream(Action<NatsStreamOptions> configure)
+    {
+        ConfigureDelegate(services =>
+        {
+            services.ConfigureNamedOptionForLogging<NatsStreamOptions>(_name);
+            services.Configure(_name, configure);
+        });
+    }
+    
+    public void ConfigureConsumers(Action<NatsConsumerOptions> configure)
+    {
+        ConfigureDelegate(services =>
+        {
+            services.ConfigureNamedOptionForLogging<NatsConsumerOptions>(_name);
+            services.Configure(_name, configure);
+        });
+    }
+}
+
+public class NatsConsumerOptions
+{
+    public bool CreateConsumer { get; set; } = true;
+}
+
+public class NatsStreamOptions
+{
+    public string? StreamName { get; set; }
+    public bool CreateStream { get; set; } = true;
 }
