@@ -7,7 +7,7 @@ using Shouldly;
 
 namespace Orleans.Contrib.Streaming.NATS.Tests;
 
-public class ClientStreamTests : IClassFixture<TestFixture>  
+public class ClientStreamTests : StreamTestsBase, IClassFixture<TestFixture>  
 {
     private const string StreamNamespace = "MyStreamNamespace";
     private const string StreamProvider = "StreamProvider";
@@ -52,7 +52,7 @@ public class ClientStreamTests : IClassFixture<TestFixture>
         messages.ShouldContain("test " + dateTime);
     }
     
-    [Fact(Skip = "")]
+    [Fact]
     public async Task WhenMessageIsPublishedFromClient_ObserverReceivesCompletion_PublishTwo()
     {
         var streamGuid = Guid.NewGuid();
@@ -91,9 +91,13 @@ public class ClientStreamTests : IClassFixture<TestFixture>
         
         var messages = await grain.Message();
         messages.Count.ShouldBe(10);
+        for (int i = 0; i < 10; i++)
+        {
+            messages.ShouldContain("test " + i);
+        }
     }
     
-    [Fact(Skip = "")]
+    [Fact]
     public async Task WhenMessageIsPublishedFromClient_ObserverReceivesCompletion_WithClientRestart()
     {
         var streamGuid = Guid.NewGuid();
@@ -144,56 +148,6 @@ public class ClientStreamTests : IClassFixture<TestFixture>
         firstMessage.ShouldBe("test");
     }
 
-    public class StreamObserver : IAsyncObserver<string>
-    {
-        private readonly List<TaskCompletionSource<string>> _taskCompletionSources = new();
-        public List<string> Messages = new();
-        
-        public Task OnNextAsync(string item, StreamSequenceToken? token = null)
-        {
-            Messages.Add(item);
-            foreach (var x in _taskCompletionSources) 
-                x.TrySetResult(item);
-            _taskCompletionSources.Clear();
-            return Task.CompletedTask;
-        }
-        
-        public async Task<string> FirstAsync()
-        {
-            if (Messages.Count != 0) return Messages.First();
-            var taskCompletionSource = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _taskCompletionSources.Add(taskCompletionSource);
-            await taskCompletionSource.Task;
-            return Messages.First();
-        }
-
-        public Task OnErrorAsync(Exception ex)
-        {
-            return Task.CompletedTask;
-        }
-    }
-    
-    public class TaskCompletionSourceObserver : ICompleteObserver
-    {
-        public int Count = 0;
-        
-        private TaskCompletionSource _taskCompletionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        
-        public Task OnCompleted()
-        {
-            Count++;
-            _taskCompletionSource.TrySetResult();
-            return Task.CompletedTask;
-        }
-        
-        public Task Task => _taskCompletionSource.Task;
-
-        public void Reset()
-        {
-            _taskCompletionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        }
-    }
-    
     private async Task<(IConsumerGrain grain, TaskCompletionSourceObserver completeObserver)> StartConsumeGrain(Guid streamGuid)
     {
         var grainFactory = _testFixture.Services.GetRequiredService<IGrainFactory>();
