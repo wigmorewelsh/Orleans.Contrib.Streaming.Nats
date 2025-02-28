@@ -7,13 +7,18 @@ using Shouldly;
 
 namespace Orleans.Contrib.Streaming.NATS.Tests;
 
-public class ClientStreamTests : StreamTestsBase, IClassFixture<TestFixture>  
+public class ClientStreamTests : StreamTestsBase, IClassFixture<TestFixture<ClientStreamTests.TestSettings>>  
 {
+    public class TestSettings : ITestSettings
+    {
+        public static string StreamName => nameof(ClientStreamTests);
+    }
+    
     private const string StreamNamespace = "MyStreamNamespace";
     private const string StreamProvider = "StreamProvider";
-    private readonly TestFixture _testFixture;
+    private readonly TestFixture<TestSettings> _testFixture;
 
-    public ClientStreamTests(TestFixture testFixture)
+    public ClientStreamTests(TestFixture<TestSettings> testFixture)
     {
         _testFixture = testFixture;
     }

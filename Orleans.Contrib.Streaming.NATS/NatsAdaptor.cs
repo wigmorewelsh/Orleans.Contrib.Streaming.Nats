@@ -12,24 +12,31 @@ namespace Orleans.Contrib.Streaming.NATS;
 public class NatsAdaptor : IQueueAdapter
 {
     private readonly NatsJSContext _context;
+    private readonly NatsStreamOptions _streamOptions;
     private readonly INatsMessageBodySerializer _serializer;
     private readonly HashRingBasedStreamQueueMapper _mapper;
     private readonly ILogger _logger;
 
-    public NatsAdaptor(
-        NatsJSContext context, 
-        string name, 
+    public NatsAdaptor(NatsJSContext context,
+        string name,
+        NatsStreamOptions streamOptions,
         INatsMessageBodySerializer serializer,
         HashRingBasedStreamQueueMapper mapper,
         ILogger logger)
     {
         _context = context;
+        _streamOptions = streamOptions;
         Name = name;
         _serializer = serializer;
         _mapper = mapper;
         _logger = logger;
     }
 
+    private string StreamName()
+    {
+        return _streamOptions.StreamName ?? Name;
+    }
+    
     public async Task QueueMessageBatchAsync<T>(StreamId streamId, IEnumerable<T> events, StreamSequenceToken? token,
         Dictionary<string, object> requestContext)
     {
@@ -40,14 +47,14 @@ public class NatsAdaptor : IQueueAdapter
         var natsJsPubOpts = new NatsJSPubOpts() { ExpectedLastSubjectSequence = (ulong?)token?.SequenceNumber };
         var @namespace = Encoding.UTF8.GetString(streamId.Namespace.Span);
         var key = Encoding.UTF8.GetString(streamId.Key.Span);
-        _logger.LogInformation("Publishing message to {Stream} {QueueId} {@namespace} {Key}", Name, queueId, @namespace, key);
+        _logger.LogInformation("Publishing message to {Stream} {QueueId} {@namespace} {Key}", StreamName(), queueId, @namespace, key);
         var serilizer = new NatsMemoryMessageBodySerializer(_serializer);
-        await _context.PublishAsync($"{Name}.{queueId}.{@namespace}.{key}", message, opts: natsJsPubOpts, serializer: serilizer);
+        await _context.PublishAsync($"{StreamName()}.{queueId}.{@namespace}.{key}", message, opts: natsJsPubOpts, serializer: serilizer);
     }
 
     private async Task CheckStreamExists()
     {
-        var streamConfig = new StreamConfig(Name, new[] { $"{Name}.>" })
+        var streamConfig = new StreamConfig(StreamName(), new[] { $"{StreamName()}.>" })
         {
             Discard = StreamConfigDiscard.New,
             DiscardNewPerSubject = true,
@@ -58,13 +65,12 @@ public class NatsAdaptor : IQueueAdapter
         };
         try
         {
-            var stream = await _context.GetStreamAsync(Name);
+            var stream = await _context.GetStreamAsync(StreamName());
             await stream.UpdateAsync(streamConfig);
-            // await stream.PurgeAsync(new StreamPurgeRequest());
         }
         catch (Exception err)
         {
-            _logger.LogInformation("Creating stream {Stream}", Name);
+            _logger.LogInformation("Creating stream {Stream}", StreamName());
        
             await _context.CreateStreamAsync(streamConfig);
         }
@@ -72,7 +78,7 @@ public class NatsAdaptor : IQueueAdapter
 
     public IQueueAdapterReceiver CreateReceiver(QueueId queueId)
     {
-        return new NatsQueueAdapterReceiver(Name, _context, queueId, _serializer, _logger);
+        return new NatsQueueAdapterReceiver(StreamName(), _context, queueId, _serializer, _logger);
     }
 
     public string Name { get; }

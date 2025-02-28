@@ -7,14 +7,19 @@ using Xunit.Abstractions;
 
 namespace Orleans.Contrib.Streaming.NATS.Tests;
 
-public class MultipleSubscriberTests : StreamTestsBase, IClassFixture<TestFixture>
+public class MultipleSubscriberTests : StreamTestsBase, IClassFixture<TestFixture<MultipleSubscriberTests.TestSettings>>
 {
+    public class TestSettings : ITestSettings
+    {
+        public static string StreamName => nameof(MultipleSubscriberTests);
+    }
+    
     private const string StreamNamespace = "MyStreamNamespace";
     private const string StreamProvider = "StreamProvider";
-    private readonly TestFixture _testFixture;
+    private readonly TestFixture<TestSettings> _testFixture;
     private readonly ITestOutputHelper _output;
 
-    public MultipleSubscriberTests(TestFixture testFixture, ITestOutputHelper output)
+    public MultipleSubscriberTests(TestFixture<TestSettings> testFixture, ITestOutputHelper output)
     {
         _testFixture = testFixture;
         _output = output;

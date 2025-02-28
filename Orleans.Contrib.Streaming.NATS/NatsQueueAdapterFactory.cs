@@ -17,6 +17,7 @@ namespace Orleans.Contrib.Streaming.NATS;
 public class NatsQueueAdapterFactory : IQueueAdapterFactory 
 {
     private readonly SimpleQueueAdapterCache _adapterCache;
+    private readonly NatsStreamOptions _streamOptions;
     private readonly HashRingStreamQueueMapperOptions _queueMapperOptions;
     private readonly INatsMessageBodySerializer _serializer;
     private readonly ILogger<NatsQueueAdapterFactory> _logger;
@@ -25,6 +26,8 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory
 
     public NatsQueueAdapterFactory(
         string name,
+        NatsStreamOptions streamOptions,
+        NatsConsumerOptions natsConsumerOptions,
         HashRingStreamQueueMapperOptions queueMapperOptions,
         SimpleQueueCacheOptions cacheOptions,
         INatsMessageBodySerializer serializer,
@@ -33,6 +36,7 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory
         ILoggerFactory loggerFactory)
     {
         Name = name;
+        _streamOptions = streamOptions;
         _queueMapperOptions = queueMapperOptions;
         _serializer = serializer;
         _logger = logger;
@@ -49,7 +53,7 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory
         {
             await _connection.ConnectAsync();
             var context = new NatsJSContext(_connection);
-            return new NatsAdaptor(context, Name, _serializer, _mapper, _logger);
+            return new NatsAdaptor(context, Name, _streamOptions, _serializer, _mapper, _logger);
         } 
         catch (Exception ex)
         {
@@ -76,12 +80,14 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory
     
     public static NatsQueueAdapterFactory Create(IServiceProvider services, string name)
     {
+        var streamOptions = services.GetOptionsByName<NatsStreamOptions>(name);
+        var consumerOptions = services.GetOptionsByName<NatsConsumerOptions>(name);
         var queueMapperOptions = services.GetOptionsByName<HashRingStreamQueueMapperOptions>(name);
         var simpleQueueCacheOptions = services.GetOptionsByName<SimpleQueueCacheOptions>(name);
         var serializer = services.GetRequiredKeyedService<INatsMessageBodySerializer>(name);
         var natsConnection = services.GetRequiredKeyedService<INatsConnection>(name);
         var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-        var factory = ActivatorUtilities.CreateInstance<NatsQueueAdapterFactory>(services, name, queueMapperOptions, simpleQueueCacheOptions, serializer, natsConnection, loggerFactory);
+        var factory = ActivatorUtilities.CreateInstance<NatsQueueAdapterFactory>(services, name, streamOptions, consumerOptions, queueMapperOptions, simpleQueueCacheOptions, serializer, natsConnection, loggerFactory);
         return factory;
     }
 }
