@@ -14,8 +14,9 @@ using Orleans.Streams;
 
 namespace Orleans.Contrib.Streaming.NATS;
 
-public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
+public class NatsQueueAdapterFactory : IQueueAdapterFactory 
 {
+    private readonly SimpleQueueAdapterCache _adapterCache;
     private readonly HashRingStreamQueueMapperOptions _queueMapperOptions;
     private readonly INatsMessageBodySerializer _serializer;
     private readonly ILogger<NatsQueueAdapterFactory> _logger;
@@ -25,9 +26,11 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
     public NatsQueueAdapterFactory(
         string name,
         HashRingStreamQueueMapperOptions queueMapperOptions,
+        SimpleQueueCacheOptions cacheOptions,
         INatsMessageBodySerializer serializer,
         ILogger<NatsQueueAdapterFactory> logger, 
-        INatsConnection connection)
+        INatsConnection connection, 
+        ILoggerFactory loggerFactory)
     {
         Name = name;
         _queueMapperOptions = queueMapperOptions;
@@ -35,6 +38,7 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
         _logger = logger;
         _connection = connection;
         _mapper = new HashRingBasedStreamQueueMapper(this._queueMapperOptions, name);
+        _adapterCache = new SimpleQueueAdapterCache(cacheOptions, name, loggerFactory);
     }
 
     public string Name { get; set; }
@@ -56,7 +60,7 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
 
     public IQueueAdapterCache GetQueueAdapterCache()
     {
-        return this;
+        return _adapterCache;
     }
 
     public IStreamQueueMapper GetStreamQueueMapper()
@@ -69,18 +73,15 @@ public class NatsQueueAdapterFactory : IQueueAdapterFactory, IQueueAdapterCache
         return new NoOpStreamDeliveryFailureHandler();
     }
 
-    private ConcurrentDictionary<QueueId, SimpleQueueCache> _cache = new();
-    public IQueueCache CreateQueueCache(QueueId queueId)
-    {
-        return _cache.GetOrAdd(queueId, new SimpleQueueCache(1024 * 4, NullLogger.Instance));
-    }
     
     public static NatsQueueAdapterFactory Create(IServiceProvider services, string name)
     {
         var queueMapperOptions = services.GetOptionsByName<HashRingStreamQueueMapperOptions>(name);
+        var simpleQueueCacheOptions = services.GetOptionsByName<SimpleQueueCacheOptions>(name);
         var serializer = services.GetRequiredKeyedService<INatsMessageBodySerializer>(name);
         var natsConnection = services.GetRequiredKeyedService<INatsConnection>(name);
-        var factory = ActivatorUtilities.CreateInstance<NatsQueueAdapterFactory>(services, name, queueMapperOptions, serializer, natsConnection);
+        var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+        var factory = ActivatorUtilities.CreateInstance<NatsQueueAdapterFactory>(services, name, queueMapperOptions, simpleQueueCacheOptions, serializer, natsConnection, loggerFactory);
         return factory;
     }
 }
