@@ -23,11 +23,11 @@ public class StreamBatchingTests : StreamTestsBase, IClassFixture<TestFixture>
     {
         var streamGuid = Guid.NewGuid();
         
-        var (grain, completeObserver) = await StartConsumeGrain(streamGuid);
+        var (grain, completeObserver) = await StartBatchConsumeGrain(streamGuid);
         
         var streamProvider = _testFixture.Services.GetRequiredKeyedService<IStreamProvider>(StreamProvider);
         
-        await PublishMessages(streamGuid, streamProvider, 10);
+        await BatchPublishMessages(streamGuid, streamProvider, 10);
 
         await completeObserver.Task.WaitAsync(TimeSpan.FromSeconds(30));
         
@@ -41,8 +41,40 @@ public class StreamBatchingTests : StreamTestsBase, IClassFixture<TestFixture>
         var batchs = await grain.Batchs();
         batchs.ShouldBe(1);
     }
+    
+    [Fact]
+    public async Task WhenBatchMessagesArePublished_CheckConsumeInBatches()
+    {
+        var streamGuid = Guid.NewGuid();
+        
+        var (grain, completeObserver) = await StartConsumeGrain(streamGuid);
+        
+        var streamProvider = _testFixture.Services.GetRequiredKeyedService<IStreamProvider>(StreamProvider);
+        
+        await BatchPublishMessages(streamGuid, streamProvider, 10);
 
-    private async Task<(IBatchingStreamConsumerGrain grain, TaskCompletionSourceObserver completeObserver)> StartConsumeGrain(Guid streamGuid)
+        await completeObserver.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        
+        var messages = await grain.Message();
+        messages.Count.ShouldBe(10);
+        for (int i = 0; i < 10; i++)
+        {
+            messages.ShouldContain("test " + i);
+        }
+    }
+
+    private async Task<(IConsumerGrain grain, TaskCompletionSourceObserver completeObserver)> StartConsumeGrain(Guid streamGuid)
+    {
+        var grain = _testFixture.Client.GetGrain<IConsumerGrain>(streamGuid);
+        var completeObserver = new TaskCompletionSourceObserver();
+        
+        var reference = _testFixture.Client.CreateObjectReference<ICompleteObserver>(completeObserver);
+        await grain.Subscribe(reference);
+        await grain.Consume(StreamProvider, StreamNamespace, streamGuid);
+        return (grain, completeObserver);
+    }
+    
+    private async Task<(IBatchingStreamConsumerGrain grain, TaskCompletionSourceObserver completeObserver)> StartBatchConsumeGrain(Guid streamGuid)
     {
         var grain = _testFixture.Client.GetGrain<IBatchingStreamConsumerGrain>(streamGuid);
         var completeObserver = new TaskCompletionSourceObserver();
@@ -53,7 +85,7 @@ public class StreamBatchingTests : StreamTestsBase, IClassFixture<TestFixture>
         return (grain, completeObserver);
     }
     
-    private async Task PublishMessages(Guid streamGuid, IStreamProvider streamProvider, int count)
+    private async Task BatchPublishMessages(Guid streamGuid, IStreamProvider streamProvider, int count)
     {
         var streamId = StreamId.Create(StreamNamespace, streamGuid);
         var stream = streamProvider.GetStream<string>(streamId);
