@@ -111,8 +111,11 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
 
                 if (natsBatchContainer.ReplyTo is { } replyTo)
                 {
-                    await _context.PublishAsync(replyTo, NatsJSConstants.Ack);
+                    // this is faster than waiting for the ack to be confirmed
+                    // and orleans tracks the sequence number for each consumer
+                    _context.PublishConcurrentAsync(replyTo, NatsJSConstants.Ack).AsTask().Ignore();
                 }
+
             }
         } catch (Exception err)
         {
