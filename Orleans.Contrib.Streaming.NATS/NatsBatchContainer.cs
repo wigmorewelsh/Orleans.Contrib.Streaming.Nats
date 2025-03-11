@@ -10,7 +10,7 @@ namespace Orleans.Contrib.Streaming.NATS;
 public class NatsBatchContainer : IBatchContainer
 {
     public NatsBatchContainer(StreamId streamId,
-        NatsStreamSequenceToken sequenceToken, List<object>? dataEvents, string? replyTo)
+        EventSequenceTokenV2 sequenceToken, List<object>? dataEvents, string? replyTo)
     {
         Events = dataEvents;
         ReplyTo = replyTo;
@@ -22,7 +22,7 @@ public class NatsBatchContainer : IBatchContainer
     {
         if (Events == null) yield break;
         
-        var sequenceToken = (SequenceToken as NatsStreamSequenceToken)!;
+        var sequenceToken = (SequenceToken as EventSequenceTokenV2)!;
 
         var i = 0;
         foreach (var evt in Events.Cast<T>())

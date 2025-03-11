@@ -44,23 +44,23 @@ public class NatsAdaptor : IQueueAdapter
         await CheckStreamExists();
 
         var message = new MemoryMessageBody(events.Cast<object>(), requestContext);
-        var natsJsPubOpts = new NatsJSPubOpts() { ExpectedLastSubjectSequence = (ulong?)token?.SequenceNumber };
-        var @namespace = Encoding.UTF8.GetString(streamId.Namespace.Span);
-        var key = Encoding.UTF8.GetString(streamId.Key.Span);
-        _logger.LogInformation("Publishing message to {Stream} {QueueId} {@namespace} {Key}", StreamName(), queueId, @namespace, key);
+        var natsJsPubOpts = new NatsJSPubOpts()
+        {
+            ExpectedLastSubjectSequence = (ulong?)token?.SequenceNumber
+        };
+       
+        var subject = NatsSubjects.ToSubject(StreamName(), queueId, streamId);
+
+        _logger.LogInformation("Publishing message to {Subject}", subject);
         var serilizer = new NatsMemoryMessageBodySerializer(_serializer);
-        await _context.PublishAsync($"{StreamName()}.{queueId}.{@namespace}.{key}", message, opts: natsJsPubOpts, serializer: serilizer);
+        await _context.PublishAsync(subject, message, opts: natsJsPubOpts, serializer: serilizer);
     }
 
     private async Task CheckStreamExists()
     {
-        var streamConfig = new StreamConfig(StreamName(), new[] { $"{StreamName()}.>" })
+        var streamConfig = new StreamConfig(StreamName(), [$"{StreamName()}.>"])
         {
-            Discard = StreamConfigDiscard.New,
-            DiscardNewPerSubject = true,
-            MaxMsgsPerSubject = 1000,
-            MaxBytes = 10 * 1024 * 1024,
-            MaxAge = TimeSpan.FromDays(2),
+            MaxAge = TimeSpan.FromMinutes(10),
             Retention = StreamConfigRetention.Interest
         };
         try

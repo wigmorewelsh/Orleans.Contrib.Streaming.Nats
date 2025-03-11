@@ -1,8 +1,10 @@
+using System.Diagnostics;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using NATS.Client.JetStream;
 using NATS.Client.JetStream.Models;
 using Orleans.Providers;
+using Orleans.Providers.Streams.Common;
 using Orleans.Runtime;
 using Orleans.Serialization;
 using Orleans.Streams;
@@ -19,9 +21,9 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
     private readonly ILogger _logger;
 
     public NatsQueueAdapterReceiver(
-        string name, 
-        NatsJSContext context, 
-        QueueId queueId, 
+        string name,
+        NatsJSContext context,
+        QueueId queueId,
         INatsMessageBodySerializer serializer,
         ILogger logger)
     {
@@ -47,17 +49,17 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
         catch (Exception err)
         {
             _logger.LogInformation("Creating consumer {ConsumerName}", _name);
-            _consumer = await _context.CreateOrUpdateConsumerAsync(_name,
-                new ConsumerConfig(_queueId.ToString())
-                {
-                    DurableName = _queueId.ToString(),
-                    FilterSubject = $"{_name}.{_queueId}.>",
-                    DeliverPolicy = ConsumerConfigDeliverPolicy.New,
-                    AckPolicy = ConsumerConfigAckPolicy.Explicit
-                }); 
+            var consumerConfig = new ConsumerConfig(_queueId.ToString())
+            {
+                DurableName = _queueId.ToString(),
+                FilterSubject = $"{_name}.{_queueId}.>",
+                DeliverPolicy = ConsumerConfigDeliverPolicy.New,
+                AckPolicy = ConsumerConfigAckPolicy.All,
+            };
+            _consumer = await _context.CreateOrUpdateConsumerAsync(_name, consumerConfig);
         }
     }
-
+    
     private async Task CheckStreamExists()
     {
         try
@@ -79,21 +81,32 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
         {
             var messages = new List<IBatchContainer>();
             var serializer = new NatsMemoryMessageBodySerializer(_serializer);
-            await foreach (var message in _consumer.FetchAsync<MemoryMessageBody>(new NatsJSFetchOpts()
-                               { MaxMsgs = maxCount, Expires = TimeSpan.FromSeconds(1) }, serializer: serializer))
+            var natsJsFetchOpts = new NatsJSFetchOpts()
+            {
+                MaxMsgs = maxCount
+            };
+
+            await foreach (var message in _consumer.FetchNoWaitAsync(natsJsFetchOpts, serializer))
             {
                 _logger.LogDebug("Received message {Subject}", message.Subject);
-                var rawStreamId = message.Subject.Split('.');
-                var rawNamespace = Encoding.UTF8.GetBytes(rawStreamId[2]);
-                var rawKey = Encoding.UTF8.GetBytes(rawStreamId[3]);
-                var batch = new NatsBatchContainer(StreamId.Create(rawNamespace, rawKey),
-                    new NatsStreamSequenceToken(message.Metadata.Value.Sequence), message.Data?.Events,
+
+                var messageSubject = message.Subject;
+
+                var streamId = NatsSubjects.FromSubject(messageSubject);
+
+                var (stream, _) = message.Metadata!.Value.Sequence;
+
+                var natsStreamSequenceToken = new EventSequenceTokenV2((long)stream);
+
+                var batch = new NatsBatchContainer(streamId,
+                    natsStreamSequenceToken, message.Data?.Events,
                     message.ReplyTo);
+
                 messages.Add(batch);
             }
 
             return messages;
-        } 
+        }
         catch (Exception err)
         {
             _logger.LogError(err, "Error receiving messages");
@@ -105,19 +118,15 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
     {
         try
         {
-            foreach (var batch in messages)
-            {
-                if (batch is not NatsBatchContainer natsBatchContainer) continue;
+            var mostRecentMessage = messages
+                .OfType<NatsBatchContainer>()
+                .MaxBy(x => x.SequenceToken.SequenceNumber);
+            
+            if (mostRecentMessage == null) return;
 
-                if (natsBatchContainer.ReplyTo is { } replyTo)
-                {
-                    // this is faster than waiting for the ack to be confirmed
-                    // and orleans tracks the sequence number for each consumer
-                    _context.PublishConcurrentAsync(replyTo, NatsJSConstants.Ack).AsTask().Ignore();
-                }
-
-            }
-        } catch (Exception err)
+            await _context.PublishAsync(mostRecentMessage.ReplyTo!, NatsJSConstants.Ack);
+        }
+        catch (Exception err)
         {
             _logger.LogError(err, "Error delivering messages");
         }

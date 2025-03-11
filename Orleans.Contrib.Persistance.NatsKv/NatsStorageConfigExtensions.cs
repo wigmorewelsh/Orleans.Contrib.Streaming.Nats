@@ -32,7 +32,7 @@ public static class NatsStorageConfigExtensions
             services.ConfigureNamedOptionForLogging<NatsGrainStorageOptions>(name);
             if (string.Equals(name, "Default", StringComparison.Ordinal))
                 services.TryAddSingleton<IGrainStorage>(
-                    (Func<IServiceProvider, IGrainStorage>)(sp => sp.GetRequiredKeyedService<IGrainStorage>("Default")));
+                    sp => sp.GetRequiredKeyedService<IGrainStorage>("Default"));
             services.AddKeyedSingleton<IGrainStorage>(name, NatsGrainStorageFactory.Create);
         }));
     }
