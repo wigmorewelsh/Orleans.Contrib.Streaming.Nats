@@ -4,14 +4,15 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Orleans.EventSourcing" Version="8.2.0" />
-        <PackageReference Include="Microsoft.Orleans.Core" Version="8.2.0" />
-        <PackageReference Include="Microsoft.Orleans.Runtime" Version="8.2.0" />
-        <PackageReference Include="NATS.Client.KeyValueStore" Version="2.3.3" />
-        <PackageReference Update="GitVersion.MsBuild" Version="6.0.1">
+        <PackageReference Include="Microsoft.Orleans.EventSourcing" Version="9.1.2" />
+        <PackageReference Include="Microsoft.Orleans.Core" Version="9.1.2" />
+        <PackageReference Include="Microsoft.Orleans.Runtime" Version="9.1.2" />
+        <PackageReference Include="NATS.Client.KeyValueStore" Version="2.5.11" />
+        <PackageReference Update="GitVersion.MsBuild" Version="6.1.0">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

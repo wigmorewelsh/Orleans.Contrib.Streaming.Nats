@@ -1,9 +1,9 @@
-using System;
 using Microsoft.Extensions.Logging;
 using Orleans.EventSourcing;
+using Orleans.Runtime;
 using Orleans.Serialization;
 
-namespace Orleans.Runtime.LogConsistency;
+namespace Orleans.Contrib.EventSourcing.NATS;
 
 /// <summary>
 /// Functionality for use by log view adaptors that run distributed protocols.

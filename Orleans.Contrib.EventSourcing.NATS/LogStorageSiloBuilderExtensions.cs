@@ -1,11 +1,10 @@
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Orleans.Contrib.EventSourcing.NATS;
 using Orleans.EventSourcing;
+using Orleans.Hosting;
 using Orleans.Providers;
 
-namespace Orleans.Hosting;
+namespace Orleans.Contrib.EventSourcing.NATS;
 
 public static class LogStorageSiloBuilderExtensions
 {
@@ -14,7 +13,7 @@ public static class LogStorageSiloBuilderExtensions
     /// </summary>
     public static ISiloBuilder AddNatsLogConsistencyProviderAsDefault(this ISiloBuilder builder)
     {
-        return builder.AddLogStorageBasedLogConsistencyProvider(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME);
+        return builder.AddNatsLogConsistencyProvider(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME);
     }
 
     /// <summary>
