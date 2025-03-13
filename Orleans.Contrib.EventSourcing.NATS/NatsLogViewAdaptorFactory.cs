@@ -1,10 +1,11 @@
 ﻿using Orleans.Configuration;
 using Orleans.EventSourcing;
+using Orleans.Serialization;
 using Orleans.Storage;
 
 namespace Orleans.Contrib.EventSourcing.NATS;
 
-public class NatsLogViewAdaptorFactory : ILogViewAdaptorFactory
+public class NatsLogViewAdaptorFactory(Serializer serializer) : ILogViewAdaptorFactory
 {
     public ILogViewAdaptor<TLogView, TLogEntry> MakeLogViewAdaptor<TLogView, TLogEntry>(
         ILogViewAdaptorHost<TLogView, TLogEntry> hostGrain, 
@@ -15,7 +16,7 @@ public class NatsLogViewAdaptorFactory : ILogViewAdaptorFactory
         where TLogView : class, new() where TLogEntry : class
     {
         return new NatsLogViewAdaptor<TLogView, TLogEntry>(hostGrain, initialState, grainStorage, grainTypeName,
-            services);
+            services, serializer);
     }
 
     public bool UsesStorageProvider => false;

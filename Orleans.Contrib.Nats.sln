@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eng", "eng\eng.csproj", "{0
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orleans.Contrib.EventSourcing.NATS", "Orleans.Contrib.EventSourcing.NATS\Orleans.Contrib.EventSourcing.NATS.csproj", "{8E8D7FBC-7F5A-4A89-AE28-1CE920D251D2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orleans.Contrib.EventSourcing.NATS.Tests", "Orleans.Contrib.EventSourcing.NATS.Tests\Orleans.Contrib.EventSourcing.NATS.Tests.csproj", "{04D02793-71D7-46F0-AE41-D3191C78CCD2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{8E8D7FBC-7F5A-4A89-AE28-1CE920D251D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E8D7FBC-7F5A-4A89-AE28-1CE920D251D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E8D7FBC-7F5A-4A89-AE28-1CE920D251D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04D02793-71D7-46F0-AE41-D3191C78CCD2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04D02793-71D7-46F0-AE41-D3191C78CCD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04D02793-71D7-46F0-AE41-D3191C78CCD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04D02793-71D7-46F0-AE41-D3191C78CCD2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
