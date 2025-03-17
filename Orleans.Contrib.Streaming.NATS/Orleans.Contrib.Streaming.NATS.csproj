@@ -11,7 +11,7 @@
       <PackageReference Include="Microsoft.Orleans.Core" Version="9.1.2" />
       <PackageReference Include="Microsoft.Orleans.Sdk" Version="9.1.2" />
       <PackageReference Include="Microsoft.Orleans.Streaming" Version="9.1.2" />
-      <PackageReference Include="NATS.Client.JetStream" Version="2.5.9" />
+      <PackageReference Include="NATS.Client.JetStream" Version="2.5.11" />
       <PackageReference Update="GitVersion.MsBuild" Version="6.1.0">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
