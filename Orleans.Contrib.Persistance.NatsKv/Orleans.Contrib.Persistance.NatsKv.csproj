@@ -10,7 +10,7 @@
     <ItemGroup>
       <PackageReference Include="Microsoft.Orleans.Core" Version="9.1.2" />
       <PackageReference Include="Microsoft.Orleans.Runtime" Version="9.1.2" />
-      <PackageReference Include="NATS.Client.KeyValueStore" Version="2.5.9" />
+      <PackageReference Include="NATS.Client.KeyValueStore" Version="2.5.16" />
       <PackageReference Update="GitVersion.MsBuild" Version="6.1.0">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
