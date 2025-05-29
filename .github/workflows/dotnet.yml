@@ -74,6 +74,18 @@ jobs:
         with:
           name: test-results
           path: '**/TestResults/*.trx'
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      - name: Generate HTML Test Report
+        run: |
+          mkdir -p TestResults/Html
+          reportgenerator -reports:**/TestResults/*.trx -targetdir:TestResults/Html -reporttypes:Html
+      - name: Upload HTML Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-html
+          path: TestResults/Html
       - name: Pack
         run: dotnet pack --configuration Release
       - name: Create Release
