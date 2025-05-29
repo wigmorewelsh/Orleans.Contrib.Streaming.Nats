@@ -33,6 +33,9 @@ public interface ISampleEventSourcedGrain : IGrainWithGuidKey
 {
     Task Raise(SampleGrainEvent @event);
     Task<SampleGrainState> GetState();
+    Task RaiseMany(SampleGrainEvent @event);
+    Task<bool> RaiseConditional(SampleGrainEvent sampleEvent);
+    Task<bool> RaiseManyConditional(SampleGrainEvent sampleEvent);
 }
 
 public class SampleEventSourcedGrain : JournaledGrain<SampleGrainState, ISampleGrainEventBase>, ISampleEventSourcedGrain
@@ -44,10 +47,24 @@ public class SampleEventSourcedGrain : JournaledGrain<SampleGrainState, ISampleG
         await ConfirmEvents();
     }
     
+    public async Task RaiseMany(SampleGrainEvent @event)
+    {
+        RaiseEvents([@event]);
+        await ConfirmEvents();
+    }
+
+    public async Task<bool> RaiseConditional(SampleGrainEvent sampleEvent)
+    {
+        return await base.RaiseConditionalEvent(sampleEvent);
+    }
+
+    public Task<bool> RaiseManyConditional(SampleGrainEvent sampleEvent)
+    {
+        return base.RaiseConditionalEvents([sampleEvent]);
+    }
+
     public async Task<SampleGrainState> GetState()
     {
         return this.State;
     }
-    
-    
 }

@@ -12,9 +12,9 @@ namespace Orleans.Contrib.EventSourcing.NATS;
 /// </summary>
 internal class ProtocolServices : ILogConsistencyProtocolServices
 {
-    private readonly ILogger log;
-    private readonly DeepCopier deepCopier;
-    private readonly IGrainContext grainContext;   // links to the grain that owns this service object
+    private readonly ILogger _log;
+    private readonly DeepCopier _deepCopier;
+    private readonly IGrainContext _grainContext;   // links to the grain that owns this service object
 
     public ProtocolServices(
         IGrainContext grainContext,
@@ -22,59 +22,59 @@ internal class ProtocolServices : ILogConsistencyProtocolServices
         DeepCopier deepCopier,
         ILocalSiloDetails siloDetails)
     {
-        this.grainContext = grainContext;
-        this.log = loggerFactory.CreateLogger<ProtocolServices>();
-        this.deepCopier = deepCopier;
+        this._grainContext = grainContext;
+        this._log = loggerFactory.CreateLogger<ProtocolServices>();
+        this._deepCopier = deepCopier;
         this.MyClusterId = siloDetails.ClusterId;
     }
 
-    public GrainId GrainId => grainContext.GrainId;
+    public GrainId GrainId => _grainContext.GrainId;
 
     public string MyClusterId { get; }
 
-    public T DeepCopy<T>(T value) => this.deepCopier.Copy(value);
+    public T DeepCopy<T>(T value) => this._deepCopier.Copy(value);
 
     public void ProtocolError(string msg, bool throwexception)
     {
-        log.LogError(
+        _log.LogError(
             (int)(throwexception ? ErrorCode.LogConsistency_ProtocolFatalError : ErrorCode.LogConsistency_ProtocolError),
             "{GrainId} Protocol Error: {Message}",
-            grainContext.GrainId,
+            _grainContext.GrainId,
             msg);
 
         if (!throwexception)
             return;
 
-        throw new OrleansException(string.Format("{0} (grain={1}, cluster={2})", msg, grainContext.GrainId, this.MyClusterId));
+        throw new OrleansException($"{msg} (grain={_grainContext.GrainId}, cluster={this.MyClusterId})");
     }
 
     public void CaughtException(string where, Exception e)
     {
-        log.LogError(
+        _log.LogError(
             (int)ErrorCode.LogConsistency_CaughtException,
             e,
             "{GrainId} exception caught at {Location}",
-            grainContext.GrainId,
+            _grainContext.GrainId,
             where);
     }
 
     public void CaughtUserCodeException(string callback, string where, Exception e)
     {
-        log.LogWarning(
+        _log.LogWarning(
             (int)ErrorCode.LogConsistency_UserCodeException,
             e,
             "{GrainId} exception caught in user code for {Callback}, called from {Location}",
-            grainContext.GrainId,
+            _grainContext.GrainId,
             callback,
             where);
     }
 
     public void Log(LogLevel level, string format, params object[] args)
     {
-        if (log != null && log.IsEnabled(level))
+        if (_log != null && _log.IsEnabled(level))
         {
-            var msg = $"{grainContext.GrainId} {string.Format(format, args)}";
-            log.Log(level, 0, msg, null, (m, exc) => $"{m}");
+            var msg = $"{_grainContext.GrainId} {string.Format(format, args)}";
+            _log.Log(level, 0, msg, null, (m, exc) => $"{m}");
         }
     }
 }
