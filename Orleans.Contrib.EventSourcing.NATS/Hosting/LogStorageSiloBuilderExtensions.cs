@@ -27,7 +27,7 @@ public static class LogStorageSiloBuilderExtensions
     internal static IServiceCollection AddNatsLogConsistencyProvider(this IServiceCollection services, string name)
     {
         services.AddLogConsistencyProtocolServicesFactory();
-        services.TryAddSingleton<ILogViewAdaptorFactory>(sp => sp.GetRequiredKeyedService<ILogViewAdaptorFactory>(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME));
+        services.TryAddSingleton<ILogViewAdaptorFactory>(sp => sp.GetRequiredKeyedService<ILogViewAdaptorFactory>(name));
         return services.AddKeyedSingleton<ILogViewAdaptorFactory, NatsLogViewAdaptorFactory>(name, NatsLogViewAdaptorFactory.Create);
     }
 }
