@@ -84,8 +84,6 @@ public class NatsLogViewAdaptor<TLogView, TLogEntry> : ILogViewAdaptor<TLogView,
 
     public async Task<bool> TryAppend(TLogEntry entry)
     {
-        await CheckStreamExists();
-        
         var subject = NatsSubject();
 
         var response = await _js.PublishAsync(subject, entry);
@@ -111,8 +109,6 @@ public class NatsLogViewAdaptor<TLogView, TLogEntry> : ILogViewAdaptor<TLogView,
 
     public async Task<bool> TryAppendRange(IEnumerable<TLogEntry> entries)
     {
-        await CheckStreamExists();
-        
         var subject = NatsSubject();
         foreach (var entry in entries)
         {
@@ -129,8 +125,6 @@ public class NatsLogViewAdaptor<TLogView, TLogEntry> : ILogViewAdaptor<TLogView,
 
     public async Task ConfirmSubmittedEntries()
     {
-        await CheckStreamExists();
-        
         var subject = NatsSubject();
 
         while (_queue.TryDequeue(out var entry))
