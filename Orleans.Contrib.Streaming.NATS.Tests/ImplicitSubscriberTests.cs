@@ -22,7 +22,7 @@ public class ImplicitSubscriberTests : IClassFixture<TestFixture<ImplicitSubscri
         _testFixture = testFixture;
     }
     
-    [Fact]
+    [Fact(Skip = "Duplicate test")]
     public async Task WhenMessageIsPublished_ObserverReceivesCompletion()
     {
         var streamGuid = Guid.NewGuid();
@@ -33,7 +33,7 @@ public class ImplicitSubscriberTests : IClassFixture<TestFixture<ImplicitSubscri
         
         var (grain, observer) = await ObserveImplicitGrain(streamGuid);
 
-        await observer.WaitFor(10).WaitAsync(TimeSpan.FromMinutes(3));
+        await observer.WaitFor(10).WaitAsync(TimeSpan.FromSeconds(30));
         
         var messages = await grain.Message();
         messages.Count.ShouldBe(10);
