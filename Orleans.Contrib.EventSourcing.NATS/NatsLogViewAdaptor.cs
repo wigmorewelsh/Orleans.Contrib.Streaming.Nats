@@ -5,30 +5,20 @@ using Orleans.Contrib.EventSourcing.NATS.Serialization;
 using Orleans.EventSourcing;
 using Orleans.Runtime;
 using Orleans.Serialization;
-using Orleans.Storage;
 
 namespace Orleans.Contrib.EventSourcing.NATS;
 
 public class NatsLogViewAdaptor<TLogView, TLogEntry> : ILogViewAdaptor<TLogView, TLogEntry> where TLogView : class, new()
 {
     private readonly ILogViewAdaptorHost<TLogView, TLogEntry> _hostGrain;
-    private readonly object _initialState;
-    private readonly IGrainStorage _grainStorage;
-    private readonly string _grainTypeName;
     private readonly ILogConsistencyProtocolServices _services;
-    private readonly Serializer _serializer;
     private readonly NatsJSContext _js;
 
-    public NatsLogViewAdaptor(ILogViewAdaptorHost<TLogView, TLogEntry> hostGrain, object initialState,
-        IGrainStorage grainStorage, string grainTypeName, ILogConsistencyProtocolServices services,
+    public NatsLogViewAdaptor(ILogViewAdaptorHost<TLogView, TLogEntry> hostGrain, object initialState, ILogConsistencyProtocolServices services,
         Serializer serializer)
     {
         _hostGrain = hostGrain;
-        _initialState = initialState;
-        _grainStorage = grainStorage;
-        _grainTypeName = grainTypeName;
         _services = services;
-        _serializer = serializer;
         var nats = new NatsConnection(NatsOpts.Default with { SerializerRegistry = new NatsOrleansSerializerRegistry(serializer) });
         var js = new NatsJSContext(nats);
         _js = js;

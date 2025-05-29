@@ -15,7 +15,7 @@ public class NatsLogViewAdaptorFactory(Serializer serializer) : ILogViewAdaptorF
         ILogConsistencyProtocolServices services)
         where TLogView : class, new() where TLogEntry : class
     {
-        return new NatsLogViewAdaptor<TLogView, TLogEntry>(hostGrain, initialState, grainStorage, grainTypeName,
+        return new NatsLogViewAdaptor<TLogView, TLogEntry>(hostGrain, initialState,
             services, serializer);
     }
 
