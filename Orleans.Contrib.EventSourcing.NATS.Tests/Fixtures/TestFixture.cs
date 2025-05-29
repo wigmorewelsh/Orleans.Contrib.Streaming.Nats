@@ -91,4 +91,9 @@ public class TestFixture<TTestSettings> : IAsyncLifetime where TTestSettings : I
     {
         await _host.DisposeAsync();
     }
+
+    public async Task RestartSilo()
+    {
+        await _host.RestartSiloAsync(_silo);
+    }
 }

@@ -89,7 +89,11 @@ public class NatsLogViewAdaptor<TLogView, TLogEntry> : ILogViewAdaptor<TLogView,
         var subject = NatsSubject();
 
         var response = await _js.PublishAsync(subject, entry);
-        return response.IsSuccess();
+        if (!response.IsSuccess()) return false;
+        
+        _hostGrain.UpdateView(ConfirmedView, entry);
+        return true;
+
     }
 
     private string StreamName()
@@ -100,8 +104,8 @@ public class NatsLogViewAdaptor<TLogView, TLogEntry> : ILogViewAdaptor<TLogView,
     private string NatsSubject()
     {
         var key = _services.GrainId.ToString();
-        var test = StreamName();
-        var subject = $"{test}.{key}";
+        var streamName = StreamName();
+        var subject = $"{streamName}.{key}";
         return subject;
     }
 
@@ -117,6 +121,7 @@ public class NatsLogViewAdaptor<TLogView, TLogEntry> : ILogViewAdaptor<TLogView,
             {
                 return false;
             }
+            _hostGrain.UpdateView(ConfirmedView, entry);
         }
 
         return true;
