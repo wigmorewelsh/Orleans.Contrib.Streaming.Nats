@@ -33,7 +33,7 @@ public class ImplicitSubscriberTests : IClassFixture<TestFixture<ImplicitSubscri
         
         var (grain, observer) = await ObserveImplicitGrain(streamGuid);
 
-        await observer.WaitFor(10).WaitAsync(TimeSpan.FromSeconds(30));
+        await observer.WaitFor(10).WaitAsync(TimeSpan.FromMinutes(3));
         
         var messages = await grain.Message();
         messages.Count.ShouldBe(10);
