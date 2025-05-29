@@ -34,7 +34,7 @@ public class TestFixture<TTestSettings> : IAsyncLifetime where TTestSettings : I
                 logging.AddConsole(cl => cl.LogToStandardErrorThreshold = LogLevel.Error);
             });
             siloBuilder.AddMemoryGrainStorage("PubSubStore");
-            siloBuilder.AddNatsLogConsistencyProviderAsDefault();
+            siloBuilder.AddNatsLogConsistencyProvider(TTestSettings.StreamName);
             siloBuilder.AddMemoryGrainStorageAsDefault();
         }
     }

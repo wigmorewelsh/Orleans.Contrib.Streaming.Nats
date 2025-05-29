@@ -28,6 +28,6 @@ public static class LogStorageSiloBuilderExtensions
     {
         services.AddLogConsistencyProtocolServicesFactory();
         services.TryAddSingleton<ILogViewAdaptorFactory>(sp => sp.GetRequiredKeyedService<ILogViewAdaptorFactory>(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME));
-        return services.AddKeyedSingleton<ILogViewAdaptorFactory, NatsLogViewAdaptorFactory>(name);
+        return services.AddKeyedSingleton<ILogViewAdaptorFactory, NatsLogViewAdaptorFactory>(name, NatsLogViewAdaptorFactory.Create);
     }
 }

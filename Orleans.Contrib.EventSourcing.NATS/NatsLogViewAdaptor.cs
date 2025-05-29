@@ -12,18 +12,22 @@ public class NatsLogViewAdaptor<TLogView, TLogEntry> : ILogViewAdaptor<TLogView,
 {
     private readonly ILogViewAdaptorHost<TLogView, TLogEntry> _hostGrain;
     private readonly ILogConsistencyProtocolServices _services;
+    private readonly string _name;
     private readonly NatsJSContext _js;
 
-    public NatsLogViewAdaptor(ILogViewAdaptorHost<TLogView, TLogEntry> hostGrain, object initialState, ILogConsistencyProtocolServices services,
-        Serializer serializer)
+    public NatsLogViewAdaptor(ILogViewAdaptorHost<TLogView, TLogEntry> hostGrain, object initialState,
+        ILogConsistencyProtocolServices services,
+        Serializer serializer, string name)
     {
         _hostGrain = hostGrain;
         _services = services;
+        _name = name;
         var nats = new NatsConnection(NatsOpts.Default with { SerializerRegistry = new NatsOrleansSerializerRegistry(serializer) });
         var js = new NatsJSContext(nats);
         _js = js;
         
         ConfirmedView = initialState as TLogView ?? new TLogView();
+        ConfirmedVersion = 0;
     }
     
     private async Task CheckStreamExists()
@@ -39,8 +43,6 @@ public class NatsLogViewAdaptor<TLogView, TLogEntry> : ILogViewAdaptor<TLogView,
         }
         catch (Exception err)
         {
-            // _logger.LogInformation("Creating stream {Stream}", StreamName());
-       
             await _js.CreateStreamAsync(streamConfig);
         }
     }
@@ -86,7 +88,7 @@ public class NatsLogViewAdaptor<TLogView, TLogEntry> : ILogViewAdaptor<TLogView,
 
     private string StreamName()
     {
-        return "test".ToUpperInvariant();
+        return _name.ToUpperInvariant();
     }
     
     private string NatsSubject()
