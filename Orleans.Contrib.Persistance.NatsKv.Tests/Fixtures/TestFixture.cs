@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using NATS.Extensions.Microsoft.DependencyInjection;
 using Orleans.Contrib.Persistance.NatsKv;
 using Orleans.Hosting;
 using Orleans.TestingHost;
@@ -37,6 +38,7 @@ public class TestFixture<TTestSettings> : IAsyncLifetime where TTestSettings : I
                 logging.SetMinimumLevel(LogLevel.Information);
                 logging.AddConsole(cl => cl.LogToStandardErrorThreshold = LogLevel.Error);
             });
+            siloBuilder.Services.AddNatsClient();
             siloBuilder.AddNatsGrainStorageAsDefault();
         }
     }

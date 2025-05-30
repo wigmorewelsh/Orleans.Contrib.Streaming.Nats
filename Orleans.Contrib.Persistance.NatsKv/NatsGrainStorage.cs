@@ -28,8 +28,21 @@ public class NatsGrainStorage : IGrainStorage
     {
         var name = $"{grainId}.{stateName}";
         var store = await Store();
-        var state = await store.GetEntryAsync<T>(name);
-        grainState.State = state.Value;
+        try
+        {
+            var state = await store.GetEntryAsync<T>(name);
+            if (state.Value is { } value)
+                grainState.State = value;
+        } 
+        catch (NATS.Client.KeyValueStore.NatsKVKeyNotFoundException ex)
+        {
+            // If the key is not found, we simply leave the state as default
+            grainState.State = Activator.CreateInstance<T>();
+        }
+        catch (Exception ex)
+        {
+            throw new OrleansException($"Failed to read state '{name}' for grain '{grainId}'", ex);
+        }
     }
 
     public async Task WriteStateAsync<T>(string stateName, GrainId grainId, IGrainState<T> grainState)
