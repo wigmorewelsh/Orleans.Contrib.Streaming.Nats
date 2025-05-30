@@ -1,6 +1,6 @@
 using Orleans.Storage;
 
-namespace Orleans.Contrib.Persistance.NatsKv;
+namespace Orleans.Contrib.Persistance.NATS.KeyValueStore;
 
 public class NatsGrainStorageOptions : IStorageProviderSerializerOptions
 {

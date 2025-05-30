@@ -6,13 +6,13 @@ using System;
 using System.Threading.Tasks;
 using NATS.Client.KeyValueStore;
 using NSubstitute;
-using Orleans.Contrib.Persistance.NatsKv.Tests.Fixtures;
+using Orleans.Contrib.Persistance.NATS.KeyValueStore.Tests.Fixtures;
 using Orleans.Runtime;
 using Shouldly;
 using Xunit;
 
 
-namespace Orleans.Contrib.Persistance.NatsKv.Tests;
+namespace Orleans.Contrib.Persistance.NATS.KeyValueStore.Tests;
 
 public class ErrorCasePersistenceTests : IClassFixture<TestFixture<ErrorCasePersistenceTests.TestSettings>>
 {
@@ -23,7 +23,7 @@ public class ErrorCasePersistenceTests : IClassFixture<TestFixture<ErrorCasePers
 
     private readonly TestFixture<TestSettings> _testFixture;
     private readonly ITestOutputHelper _output;
-    private readonly NATS.Client.KeyValueStore.INatsKVContext _context;
+    private readonly INatsKVContext _context;
     private readonly IOptionsMonitor<NatsGrainStorageOptions> _options;
     private readonly ILogger<NatsGrainStorage> _logger;
     private readonly NatsGrainStorage _storage;

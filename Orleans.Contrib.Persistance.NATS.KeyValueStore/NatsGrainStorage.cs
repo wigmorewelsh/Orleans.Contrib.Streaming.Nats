@@ -5,7 +5,7 @@ using NATS.Client.KeyValueStore;
 using Orleans.Runtime;
 using Orleans.Storage;
 
-namespace Orleans.Contrib.Persistance.NatsKv;
+namespace Orleans.Contrib.Persistance.NATS.KeyValueStore;
 
 public class NatsGrainStorage : IGrainStorage
 {
@@ -49,7 +49,7 @@ public class NatsGrainStorage : IGrainStorage
                 if (state.Value is { } value)
                     grainState.State = value;
             }
-            catch (NATS.Client.KeyValueStore.NatsKVKeyNotFoundException)
+            catch (NatsKVKeyNotFoundException)
             {
                 grainState.State = Activator.CreateInstance<T>();
             }

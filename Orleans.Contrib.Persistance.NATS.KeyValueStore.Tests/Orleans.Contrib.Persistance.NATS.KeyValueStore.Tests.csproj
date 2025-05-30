@@ -25,7 +25,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <ProjectReference Include="../Orleans.Contrib.Persistance.NatsKv/Orleans.Contrib.Persistance.NatsKv.csproj" />
+    <ProjectReference Include="../Orleans.Contrib.Persistance.NATS.KeyValueStore/Orleans.Contrib.Persistance.NATS.KeyValueStore.csproj" />
   </ItemGroup>
 
   <ItemGroup>

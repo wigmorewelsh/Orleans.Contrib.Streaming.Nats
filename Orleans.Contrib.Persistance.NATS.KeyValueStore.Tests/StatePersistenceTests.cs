@@ -1,11 +1,11 @@
 using System;
 using System.Threading.Tasks;
-using Orleans.Contrib.Persistance.NatsKv.Tests.Fixtures;
-using Orleans.Contrib.Persistance.NatsKv.Tests.Grains;
+using Orleans.Contrib.Persistance.NATS.KeyValueStore.Tests.Fixtures;
+using Orleans.Contrib.Persistance.NATS.KeyValueStore.Tests.Grains;
 using Shouldly;
 using Xunit;
 
-namespace Orleans.Contrib.Persistance.NatsKv.Tests;
+namespace Orleans.Contrib.Persistance.NATS.KeyValueStore.Tests;
 
 public class StatePersistenceTests : IClassFixture<TestFixture<StatePersistenceTests.Settings>>
 {

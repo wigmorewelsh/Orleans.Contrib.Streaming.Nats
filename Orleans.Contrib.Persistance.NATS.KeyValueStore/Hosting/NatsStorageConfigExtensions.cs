@@ -10,7 +10,7 @@ using Orleans.Providers;
 using Orleans.Runtime;
 using Orleans.Storage;
 
-namespace Orleans.Contrib.Persistance.NatsKv;
+namespace Orleans.Contrib.Persistance.NATS.KeyValueStore;
 
 public static class NatsStorageConfigExtensions
 {
