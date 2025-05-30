@@ -17,7 +17,7 @@ public static class NatsGrainStorageFactory
     public static IGrainStorage Create(IServiceProvider services, object? name)
     {
         Debug.Assert(name != null, nameof(name) + " != null");
-        return (IGrainStorage)ActivatorUtilities.CreateInstance<NatsGrainStorage>(services,
-            (object)services.GetRequiredService<IOptionsMonitor<NatsGrainStorageOptions>>().Get(name as string), name);
+        return ActivatorUtilities.CreateInstance<NatsGrainStorage>(services,
+            services.GetRequiredService<IOptionsMonitor<NatsGrainStorageOptions>>(), name);
     }
 }
