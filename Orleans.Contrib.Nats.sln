@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orleans.Contrib.Streaming.N
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orleans.Contrib.Streaming.NATS.Tests", "Orleans.Contrib.Streaming.NATS.Tests\Orleans.Contrib.Streaming.NATS.Tests.csproj", "{0DB8251B-2E5A-4354-91B6-35DCB3AA1954}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orleans.Contrib.Persistance.NatsKv", "Orleans.Contrib.Persistance.NatsKv\Orleans.Contrib.Persistance.NatsKv.csproj", "{19E0FD37-C3BD-421C-8F01-4C088D31C6DD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orleans.Contrib.Persistance.NATS.KeyValueStore", "Orleans.Contrib.Persistance.NATS.KeyValueStore\Orleans.Contrib.Persistance.NATS.KeyValueStore.csproj", "{19E0FD37-C3BD-421C-8F01-4C088D31C6DD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eng", "eng\eng.csproj", "{0E303419-A16B-4440-B7FD-B030A070ACBB}"
 EndProject
@@ -12,7 +12,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orleans.Contrib.EventSourci
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orleans.Contrib.EventSourcing.NATS.Tests", "Orleans.Contrib.EventSourcing.NATS.Tests\Orleans.Contrib.EventSourcing.NATS.Tests.csproj", "{04D02793-71D7-46F0-AE41-D3191C78CCD2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orleans.Contrib.Persistance.NatsKv.Tests", "Orleans.Contrib.Persistance.NatsKv.Tests\Orleans.Contrib.Persistance.NatsKv.Tests.csproj", "{C53DA58B-B16A-4DCA-A8A6-3C0E23A6E939}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orleans.Contrib.Persistance.NATS.KeyValueStore.Tests", "Orleans.Contrib.Persistance.NATS.KeyValueStore.Tests\Orleans.Contrib.Persistance.NATS.KeyValueStore.Tests.csproj", "{C53DA58B-B16A-4DCA-A8A6-3C0E23A6E939}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

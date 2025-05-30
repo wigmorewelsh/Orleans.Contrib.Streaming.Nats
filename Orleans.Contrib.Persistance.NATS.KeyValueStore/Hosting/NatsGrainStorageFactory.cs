@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Orleans.Storage;
 
-namespace Orleans.Contrib.Persistance.NatsKv;
+namespace Orleans.Contrib.Persistance.NATS.KeyValueStore;
 
 /// <summary>Factory for creating MemoryGrainStorage</summary>
 public static class NatsGrainStorageFactory

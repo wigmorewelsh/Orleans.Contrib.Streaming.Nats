@@ -7,7 +7,7 @@ using Orleans.Hosting;
 using Orleans.TestingHost;
 using Xunit;
 
-namespace Orleans.Contrib.Persistance.NatsKv.Tests.Fixtures;
+namespace Orleans.Contrib.Persistance.NATS.KeyValueStore.Tests.Fixtures;
 
 public interface ITestSettings
 {

@@ -1,7 +1,7 @@
 using Orleans;
 using System.Threading.Tasks;
 
-namespace Orleans.Contrib.Persistance.NatsKv.Tests.Grains;
+namespace Orleans.Contrib.Persistance.NATS.KeyValueStore.Tests.Grains;
 
 [GenerateSerializer]
 public class TestState
