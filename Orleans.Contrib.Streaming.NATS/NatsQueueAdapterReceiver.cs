@@ -19,6 +19,7 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
     private INatsJSConsumer? _consumer;
     private readonly INatsMessageBodySerializer _serializer;
     private readonly ILogger _logger;
+    private volatile bool _shuttingDown = false;
 
     public NatsQueueAdapterReceiver(
         string name,
@@ -118,6 +119,8 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
     {
         try
         {
+            if (_shuttingDown) return;
+            
             var mostRecentMessage = messages
                 .OfType<NatsBatchContainer>()
                 .MaxBy(x => x.SequenceToken.SequenceNumber);
@@ -128,12 +131,14 @@ public class NatsQueueAdapterReceiver : IQueueAdapterReceiver
         }
         catch (Exception err)
         {
+            if (_shuttingDown) return;
             _logger.LogError(err, "Error delivering messages");
         }
     }
 
     public Task Shutdown(TimeSpan timeout)
     {
+        _shuttingDown = true;
         return Task.CompletedTask;
     }
 }
