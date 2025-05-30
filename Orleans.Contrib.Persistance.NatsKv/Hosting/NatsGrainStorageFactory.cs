@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using Orleans.Storage;
 
 namespace Orleans.Contrib.Persistance.NatsKv;
@@ -18,6 +19,10 @@ public static class NatsGrainStorageFactory
     {
         Debug.Assert(name != null, nameof(name) + " != null");
         return ActivatorUtilities.CreateInstance<NatsGrainStorage>(services,
-            services.GetRequiredService<IOptionsMonitor<NatsGrainStorageOptions>>(), name);
+            services.GetRequiredService<IOptionsMonitor<NatsGrainStorageOptions>>(),
+            name,
+            services.GetRequiredService<ILogger<NatsGrainStorage>>()
+        );
     }
 }
+

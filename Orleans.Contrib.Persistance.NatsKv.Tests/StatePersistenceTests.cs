@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using Orleans.Contrib.Persistance.NatsKv.Tests.Fixtures;
 using Orleans.Contrib.Persistance.NatsKv.Tests.Grains;
-using Orleans.Contrib.EventSourcing.NATS.Tests.Fixtures;
 using Shouldly;
 using Xunit;
 
