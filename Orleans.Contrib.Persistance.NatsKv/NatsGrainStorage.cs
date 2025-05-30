@@ -10,7 +10,7 @@ public class NatsGrainStorage : IGrainStorage
     private readonly INatsKVContext _context;
     private readonly IOptionsMonitor<NatsGrainStorageOptions> _options;
     private readonly string _name;
-    private INatsKVStore _store;
+    private INatsKVStore? _store = null;
 
     public NatsGrainStorage(INatsKVContext context, IOptionsMonitor<NatsGrainStorageOptions> options, string name)
     {
