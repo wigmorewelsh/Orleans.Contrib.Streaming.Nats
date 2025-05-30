@@ -3,12 +3,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NATS.Extensions.Microsoft.DependencyInjection;
-using Orleans.Contrib.Persistance.NatsKv;
 using Orleans.Hosting;
 using Orleans.TestingHost;
 using Xunit;
 
-namespace Orleans.Contrib.EventSourcing.NATS.Tests.Fixtures;
+namespace Orleans.Contrib.Persistance.NatsKv.Tests.Fixtures;
 
 public interface ITestSettings
 {
