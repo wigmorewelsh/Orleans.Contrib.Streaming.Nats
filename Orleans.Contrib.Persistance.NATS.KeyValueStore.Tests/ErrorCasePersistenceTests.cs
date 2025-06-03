@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using NSubstitute.ExceptionExtensions;
 using Xunit.Abstractions;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using NATS.Client.KeyValueStore;
 using NSubstitute;
@@ -40,6 +41,7 @@ public class ErrorCasePersistenceTests : IClassFixture<TestFixture<ErrorCasePers
         _storage = new NatsGrainStorage(_context, _options, "test", _logger);
         _grainState = Substitute.For<IGrainState<string>>();
         _store = Substitute.For<INatsKVStore>();
+        _storage.Init(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
     }
 
     [Fact]
@@ -82,7 +84,7 @@ public class ErrorCasePersistenceTests : IClassFixture<TestFixture<ErrorCasePers
     {
         _store.GetEntryAsync<string>(Arg.Any<string>()).Returns(_ =>
         {
-            Task.Delay(2000).Wait(); 
+            Task.Delay(2000).Wait();
             return new NatsKVEntry<string>("", "");
         });
         _context.CreateStoreAsync(Arg.Any<string>()).Returns(ValueTask.FromResult(_store));

@@ -9,6 +9,7 @@ using Orleans.Hosting;
 using Orleans.Providers;
 using Orleans.Runtime;
 using Orleans.Storage;
+using Orleans.Runtime.Hosting;
 
 namespace Orleans.Contrib.Persistance.NATS.KeyValueStore;
 
@@ -18,7 +19,7 @@ public static class NatsStorageConfigExtensions
     {
         return builder.AddNatsGrainStorage(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME, configureOptions);
     }
-    
+
     public static ISiloBuilder AddNatsGrainStorage(
         this ISiloBuilder builder,
         string name,
@@ -32,11 +33,12 @@ public static class NatsStorageConfigExtensions
                 var jsContext = new NatsJSContext(connection);
                 return new NatsKVContext(jsContext);
             });
-            
+
             configureOptions?.Invoke(services.AddOptions<NatsGrainStorageOptions>(name));
             services.AddTransient<IPostConfigureOptions<NatsGrainStorageOptions>, DefaultStorageProviderSerializerOptionsConfigurator<NatsGrainStorageOptions>>();
             services.ConfigureNamedOptionForLogging<NatsGrainStorageOptions>(name);
-            services.AddKeyedSingleton<IGrainStorage>(name, NatsGrainStorageFactory.Create);
+            services.AddGrainStorage(name, NatsGrainStorageFactory.Create);
+
             if (string.Equals(name, "Default", StringComparison.Ordinal))
                 services.TryAddSingleton<IGrainStorage>(
                     sp => sp.GetRequiredKeyedService<IGrainStorage>("Default"));
