@@ -7,7 +7,7 @@ using Orleans.Storage;
 
 namespace Orleans.Contrib.Persistance.NATS.KeyValueStore;
 
-public class NatsGrainStorage : IGrainStorage
+public class NatsGrainStorage : IGrainStorage, ILifecycleParticipant<ISiloLifecycle>
 {
     private readonly INatsKVContext _context;
     private readonly IOptionsMonitor<NatsGrainStorageOptions> _options;
@@ -23,18 +23,32 @@ public class NatsGrainStorage : IGrainStorage
         _logger = logger;
     }
 
-    private async Task<INatsKVStore> Store()
+    internal async Task Init(CancellationToken cancellationToken)
     {
         try
         {
-            return _store ??= await _context.CreateStoreAsync(_name);
+            _store = await _context.CreateStoreAsync(_name, cancellationToken);
         }
         catch (Exception ex)
         {
-            // Log the exception
-            _logger.LogError(ex, "[NatsGrainStorage] Failed to create store for name '{StoreName}'", _name);
-            throw new OrleansException($"Failed to create store for name '{_name}'");
+            _logger.LogError(ex, "[NatsGrainStorage] Failed to initialize store for name '{StoreName}'", _name);
+            throw new OrleansException($"Failed to initialize store for name '{_name}'");
         }
+    }
+
+    public void Participate(ISiloLifecycle lifecycle)
+    {
+        lifecycle.Subscribe(
+            OptionFormattingUtilities.Name<NatsGrainStorage>(_name),
+            ServiceLifecycleStage.AfterRuntimeGrainServices,
+            Init);
+    }
+
+    private Task<INatsKVStore> Store()
+    {
+        if (_store == null)
+            throw new OrleansException($"NATS KV Store for '{_name}' is not initialized. Did you forget to call Participate/Init?");
+        return Task.FromResult(_store);
     }
 
     public async Task ReadStateAsync<T>(string stateName, GrainId grainId, IGrainState<T> grainState)

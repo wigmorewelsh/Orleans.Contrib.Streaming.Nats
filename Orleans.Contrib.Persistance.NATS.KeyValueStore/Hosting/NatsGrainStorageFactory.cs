@@ -15,7 +15,7 @@ public static class NatsGrainStorageFactory
     /// <param name="services">The services.</param>
     /// <param name="name">The name.</param>
     /// <returns>The storage.</returns>
-    public static IGrainStorage Create(IServiceProvider services, object? name)
+    public static NatsGrainStorage Create(IServiceProvider services, object? name)
     {
         Debug.Assert(name != null, nameof(name) + " != null");
         return ActivatorUtilities.CreateInstance<NatsGrainStorage>(services,
@@ -25,4 +25,5 @@ public static class NatsGrainStorageFactory
         );
     }
 }
+
 
