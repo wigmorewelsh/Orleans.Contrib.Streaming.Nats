@@ -1,8 +1,13 @@
 <Project>
-    <ItemGroup>
-        <PackageReference Include="GitVersion.MsBuild" Version="6.1.0">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-    </ItemGroup>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <!-- GitVersion.MsBuild is a build tool, its version is managed in Directory.Packages.props -->
+  <!-- This ensures it's applied globally as before. -->
+  <ItemGroup>
+    <PackageReference Include="GitVersion.MsBuild">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
 </Project>

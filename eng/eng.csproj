@@ -10,19 +10,14 @@
     <ItemGroup>
         <None LinkBase="Build" Include="../.github/**/*.*" />
         <None Include="../*.*" />
-        <None Update="..\.github\workflows\entrypoint.sh">
-          <Link>Build\workflows\entrypoint.sh</Link>
+        <None Update="..\\.github\\workflows\\entrypoint.sh">
+          <Link>Build\\workflows\\entrypoint.sh</Link>
         </None>
-        <None Update="..\.github\workflows\nats.conf">
-          <Link>Build\workflows\nats.conf</Link>
+        <None Update="..\\.github\\workflows\\nats.conf">
+          <Link>Build\\workflows\\nats.conf</Link>
         </None>
     </ItemGroup>
     
-    <ItemGroup>
-      <PackageReference Update="GitVersion.MsBuild" Version="6.1.0">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-    </ItemGroup>
+    <!-- GitVersion.MsBuild reference removed as it's handled by Directory.Build.props -->
 
 </Project>
